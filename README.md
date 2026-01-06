@@ -1,2 +1,161 @@
 # wardriving-LoRaWAN
 Repo de la SAE Développement d'application du S3
+
+
+
+==== Présentation de l'équipe et rôles respectifs
+
+ CHEF DE PROJET : Quentin ROMA
+ EQUIPE : Severin VON ALLMEN, Maxime BESNIER, Maxime BE
+
+==== Correspondance des pseudos GitHub :
+ Quentin ROMA : MrTux31
+ Severin VON ALLMEN : Severinvlm 
+ Maxime BESNIER : GhostOfShadow31
+ Maxime BE : OhmSun
+
+
+==== Répartition des tâches et état d'avancement
+[options="header,footer"]
+|=======================
+|version |rôle utilisateur |use case                                     | fonctionnalité            |  Quentin | Severin |  Maxime BESNIER | Maxime BE
+| V1     | Admin           | Présentation de l'entreprise                |                           |          |         |        F        |         
+| V1     | Admin           | Présentation du contexte du projet          |                           |          |    F    |                 |  
+| V1     | Admin           | Présentation des objectifs / problématiques |                           |          |    F    |                 | 
+| V1     | Admin           | Etude de l'existant                         |                           |    F     |         |                 |         
+| V1     | Admin           | Expression du besoins                       |                           |    F     |         |                 |         
+| V1     | Admin           | Contraintes (Délais / Humains / Couts)      |                           |          |         |                 |     F  
+| V1     | Admin           | Contraintes (Techniques)                    |                           |    F     |         |                 |     
+| V1     | Admin           | Description de la solution                  |                           |          |    F    |                 |         
+| V1     | Admin           | Deroulement du projet                       |                           |          |         |        F        |         
+| V1     | Admin           | Chiffrage prévisionnel                      |                           |    F     |         |        F        |
+| V1     | Admin           | Diagramme de Gantt                          |                           |    F     |    F    |        F        |
+| V2     | Admin           | Diagramme de Gantt                          |                           |    F     |         |        F        |
+| V3     | Admin           | Diagramme de Gantt                          |                           |    F     |         |        F        |         
+| V2     | Admin           | Expression du besoins                       |                           |    F     |         |                 |     
+| V2     | Admin           | Description de la solution                  |                           |    F     |         |                 |            
+| V3     | Admin           | Expression du besoins                       |                           |    F     |         |                 |           
+| V3     | Admin           | Description de la solution                  |                           |    F     |         |                 |             
+| V3     | Admin           | Création des Use Case pour la V3            |                           |          |         |                 |      F                  
+| V3     | Admin           | Création de la maquette V3                  |                           |          |    F    |                 |                 
+
+// Version 0 - CRUD Initial
+|0       |ORGANISATEUR     |Gestion des tournois                          |Créer un tournoi          |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des tournois                          |Modifier un tournoi       |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des tournois                          |Supprimer un tournoi      |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des tournois                          |Consulter les tournois    |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des staff                             |Créer un staff            |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des staff                             |Modifier un staff         |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des staff                             |Supprimer un staff        |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des staff                             |Consulter les staff       |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des affectations                      |Affecter un staff         |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des affectations                      |Modifier une affectation  |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des affectations                      |Supprimer une affectation |    /     |    /     |        /       |
+|0       |ORGANISATEUR     |Gestion des affectations                      |Consulter les affectations|    /     |    /     |        /       |
+|0       |ADMIN            |Gestion des utilisateurs                      |Créer un utilisateur      |    /     |    /     |        /       |
+|0       |ADMIN            |Gestion des utilisateurs                      |Modifier un utilisateur   |    /     |    /     |        /       |
+|0       |ADMIN            |Gestion des utilisateurs                      |Supprimer un utilisateur  |    /     |    /     |        /       |
+|0       |ADMIN            |Gestion des utilisateurs                      |Consulter les utilisateurs|    /     |    /     |        /       |
+
+// Version 1 - Gestion des Équipes et Jeux
+|1       |ADMIN            |Gestion des joueurs                           |Créer un joueur           |    F     |          |                 |
+|1       |ADMIN            |Gestion des joueurs                           |Modifier un joueur        |    F     |          |                 |
+|1       |ADMIN            |Gestion des joueurs                           |Supprimer un joueur       |    F     |          |                 |
+|1       |ADMIN            |Gestion des joueurs                           |Consulter les joueurs     |    F     |          |                 |
+|1       |ORGANISATEUR     |Gestion des équipes                           |Créer une équipe          |          |    F     |                 |
+|1       |ORGANISATEUR     |Gestion des équipes                           |Modifier une équipe       |          |    F     |                 |
+|1       |ORGANISATEUR     |Gestion des équipes                           |Supprimer une équipe      |          |    F     |                 |
+|1       |ORGANISATEUR     |Gestion des équipes                           |Consulter les équipes     |          |    F     |                 |
+|1       |ORGANISATEUR     |Gestion des jeux                              |Créer un jeu              |          |          |        F        |
+|1       |ORGANISATEUR     |Gestion des jeux                              |Modifier un jeu           |          |          |        F        |
+|1       |ORGANISATEUR     |Gestion des jeux                              |Supprimer un jeu          |          |          |        F        |
+|1       |ORGANISATEUR     |Gestion des jeux                              |Consulter les jeux        |          |          |        F        |
+|1       |ORGANISATEUR     |Affectation                                   |Affecter joueur à équipe  |          |          |                 |
+
+// Version 2 - Gestion des PDF et Inscriptions
+|2       |ORGANISATEUR     |Gestion des inscriptions                      |Inscrire une équipe       |          |         |        F         |
+|2       |ORGANISATEUR     |Gestion des inscriptions                      |Modifier une inscription  |          |         |        F         |
+|2       |ORGANISATEUR     |Gestion des inscriptions                      |Supprimer une inscription |          |         |        F         |
+|2       |ORGANISATEUR     |Gestion des inscriptions                      |Consulter les inscriptions|          |         |        F        |
+|2       |ORGANISATEUR     |Documents                                     |Générer PDF tournoi       |          |    F    |                  |
+|2       |ADMIN            |Documents                                     |Générer PDF joueur        |    F     |         |                  |
+|2       |ADMIN            |Documents                                     |Générer PDF liste joueurs |    F     |         |                  |
+|=======================
+
+
+
+
+Chaque étudiant doit mettre son nom sur une des colonnes étudiant.
+Dans sa colonne il doit remplir la ligne correspondant à chaque partie qu'il a développé en indiquant
+
+*	*F* pour fonctionnel ou
+*	*D* pour encore en Développement
+
+==== Livrables
+
+[cols="1,2,2,5",options=header]
+|===
+| Date    | Nom         |  Lien                             | Retour Prof
+| 09/05   | CDC V1      |    link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Cahier%20des%20charges/cahierDesChargesV1.adoc[Cahier des tests]  **Attention, seulement pour la V1. Voir cahier des charges final ci dessous pour les autres versions**                             |   c'est bien, mettre la liste des livrables attendus et chiffrer le projet (salaires dev).         
+
+| 17/05 noté  | CdC final avec V2 et V3|          link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/Cahier%20des%20charges%20finalis%C3%A9/cahierDesChargesFinal.adoc[Cahier des charges]                           |manque compo de l’équipe, nom du client / projet sur page de garde. l'illustration de la BDD technique n’était pas nécessaire (on est sur un document non technique). Bon découpage du besoin par version. Contraintes travaillées même si incomplètes. chiffrage élaboré.Agréable à évaluer. 16,75/20            
+| 30/05      | Doc Util V0 et début V1 éventuel          |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V0/Doc%20utilisateur/DocumentationUtilisateur.adoc[Doc util V0]     |            
+|         |Gantt V1 Prévu|   https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Gantt/Pr%C3%A9visionnel/2.05%20Version%201.pdf                              |
+|            | Gantt V2 prévu                            |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Gantt/Pr%C3%A9visionnel/2.05%20Version%202.pdf[Gantt V2]     |            
+|            | Doc. Tech. V0 - début V1 éventuel + code  |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V0/Doc%20technique/DocumentationTechnique.adoc[Doc tech V0]
+
+|  Tous les documents DOIVENT être sur le github => pas de ggogledoc
+
+Ressources externes : Maven n'est pa une ressource externe de l'application (c'est un outil de dev comme le jdk java, scene builder, ...).
+
+Bravo pour la doc qui paraît très complète (j'ai pas tout lu). Et Bravo pour les Diagrammes de séquence. A discuter avec votre encadrant : le niveau de détail des DS : niveau code (mais très long) ou donner une vue plus macro (ex pas de détail du DAO).
+
+Code : est ce une copie du code en v0 ? ou bien un espace où vous committez ? (Ca m'a l'air le premier point). Il n'y a pas le script de création de la BD par exemple.
+|            | Cahier des tests V0                       | link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V0/Cahier%20de%20tests/CahierDeTests.adoc[Cahier tests V0]      |  Inclure un sommaire des Junit avec leurs nom et leurs résultat, détailler uniquement lorsque le nom n'est pas explicite. Pour les test graphique, une ligne (given when then) correspond normalement a une étape simple bien détaillé. Dans votre cas une ligne est un scénario de test complet. Faire un test par ligne (ex consulté un utilisateur en tant qu'organisateur = un test avec plusieurs étapes.      Bien mais dense.      
+|            | Javadoc V0                                |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V0/JavaDoc[Javadoc V0]   | niquel, 2 point
+|            | Jar V0                                    | link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V0/Fichier%20JAR[Jar V0]  | éxécutable, niquel , 2 point. 
+| 06/06      | Doc Util V1 et début V2 éventuel          | link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Doc%20utilisateur/DocumentationUtilisateur.adoc[Doc util V1]    |travail remarquable d’exhaustivité du manuel utilisateur. Éventuellement essayer de “structurer” un peu mieux les profils utilisateurs, et ajouter en bonus peut être certaines subitlités d’erreurs / tips d’utilisation (exemple: quel format de date est accepté par l’application ? YYYY-mm-dd ? autre ?            
+|            | Gantt V1 Réalisé                          | **A destination de M.Gaconnet : ** Bonjour monsieur, j'ai ajouté une nouvelle version du gantt v1. J'ai tenté d'améliorer la mise en page... Il est très difficile de tout faire rentrer sur une seule page avec project libre, et donc d'arriver à une présentation "potable" avec cet outil. En effet celui-ci est très capricieux lors des exportations en pdf. Cela est pour nous plus un problème logiciel qu'un problème de compétences, veuillez nous en excuser.
+J'ai donc réalisé une capture d'écran directement depuis le logiciel, ce qui me semblait plus lisible. De plus, j'ai supprimé des éléments qui étaient très redondants afin d'alléger un peu plus le Gantt. Merci pour votre compréhension
+
+Quentin ROMA
+
+link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Gantt/R%C3%A9el/Gantt%20r%C3%A9el%20am%C3%A9lior%C3%A9.pdf[Gantt V1]    |essayez de travailler la mise en page. L’essential est là, mais difficilement lisible. tip: Quels sont les infos redondantes que vous pourriez enlever du tableau (car retrouvées sous une autre forme ailleurs) pour tout faire rentrer sur une page?            
+|            | Gantt V2 prévu                            |  
+
+**A destination de M.Gaconnet : ** Bonjour monsieur, j'ai ajouté une nouvelle version du gantt v2. J'ai tenté d'améliorer la mise en page... Il est très difficile de tout faire rentrer sur une seule page avec project libre, et donc d'arriver à une présentation "potable" avec cet outil. En effet celui-ci est très capricieux lors des exportations en pdf. Cela est pour nous plus un problème logiciel qu'un problème de compétences, veuillez nous en excuser. J'ai donc réalisé une capture d'écran directement depuis le logiciel, ce qui me semblait plus lisible. Merci pour votre compréhension
+
+Quentin ROMA
+
+link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Gantt/Pr%C3%A9visionnel/Gantt%20V2.pdf[Gantt V2]  
+
+|idem V1. Attention il manque des assignee dans les issues GIT      
+|            | Doc. Tech. V1 + code et début V2 éventuel |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Doc%20technique/DocumentationTechnique.adoc[Doc Tech V1] 
+link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V1/Code%20source[Code V1] |     Bien le DC. Bien Archi et package. Aéré et amélioré la forme pour plus de lisibilité.
+
+Apprendre a faire des balise lien en markdown, readme illisible… 
+Bien Le lien javadoc
+       
+|            | Cahier Tests V1                           |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V1/Cahier%20de%20tests/CahierDeTests.adoc[Cahiers tests V1]    |   [CGI 11/06/2025] Bien le sommaire, bien les tests graphiques. Les noms des tests dans le sommaire, ça          
+|            | Jar V1                                    | link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V1/Fichier%20JAR[Fichier JAR V1]    | [CGI 11/06/2025] Jar V1 mal nommé,  ajoutez le groupe. Fonctionnel.
+|            | JavaDoc V1                                    |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V1/JavaDoc[Java Doc V1]   |            [CGI 11/06/2025]  Bien
+| 13/06 noté | Doc Util V2 et V3 éventuel                |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Doc%20utilisateur/DocumentationUtilisateur.adoc[Doc util V2]   |            
+|            | Gantt V2 Réalisé                          |   
+
+Comme expliqué dans les commentaires que nous avons ajoutés dans les cellules `Gantt V2 prévu` et `Gantt V1 réalisé` : nous avons rencontré certaines limitations avec le logiciel *ProjectLibre*.  
+Malgré ces contraintes, nous avons fait de notre mieux pour améliorer la lisibilité de cette version du diagramme de Gantt.  
+Merci pour votre compréhension.
+
+link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Gantt/R%C3%A9el/Gantt%20V2%20reel.pdf[Gantt V2 Réel]    |            
+|            | Gantt V3 Prévu                           | **(nous n'allons pas faire la V3)**   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V3/Gantt/Pr%C3%A9visionnel/2.05%20Version%203.pdf[Gantt V3 Prévisionnel]   |            
+|            | Doc. Tech. V2 + code + V3 éventuel        |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Doc%20technique/DocumentationTechnique.adoc[Doc tech V2]
+
+link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V2/Code%20source[Code V2]|            
+|            | Cahier Tests V2 et recette finale         |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/blob/main/V2/Cahier%20de%20tests/CahierDeTests.adoc[Cahiers tests V2]   |       
+|            | Jar V2                                    |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V2/JAR%20Application[JAR V2]   |
+|            | JavaDoc V2                                    |   link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V2/JavaDoc[JavaDoc V2]   | 
+|            | Documentations ADOC vers PDF                                 |  link:https://github.com/IUT-Blagnac/sae2-01-05-devapp-2025-2025-2a3/tree/main/V2/Docs%20pdf[Documents utilisateur, technique et tests] (un peu compliqué la mise en page avec ascii doctor. Le rendu interprété par github est beaucoup mieux.)       | 
+
+|============================================================================
+
+Les dépôts non notés permettent d'avoir un retour enseignant pour vous améliorer et participent à la note de suivi de projet. Les dépôts notés sont évalué. 
