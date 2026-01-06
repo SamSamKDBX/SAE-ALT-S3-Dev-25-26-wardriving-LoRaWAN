@@ -17,6 +17,6 @@ Repo de la SAE Développement d'application du S3
 | Document        | Lien     | Commentaires
 
 | Cahier de Recettes | A VENIR | A VENIR
-| Document xxx       | A VENIR | A VENIR
+| Backlog Produit       | A VENIR | A VENIR
 | Document xxx       | A VENIR | A VENIR
 |===
