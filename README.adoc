@@ -18,12 +18,26 @@ Repo de la SAE Développement d'application du S3
 
 
 ==== Documents :
+
+|===
+| Document        | Lien      
+
+| Backlog Produit       | A VENIR 
+| Prototype en Cours | A VENIR 
+
+|===
+
 |===
 | Document        | Lien Sprint 1     | Commentaires        | Lien Sprint 2     | Commentaires
 
-| Backlog Produit       | A VENIR | A VENIR | A VENIR | A VENIR
-| CR       | A VENIR | A VENIR | A VENIR | A VENIR
-| ODJ       | A VENIR | A VENIR | A VENIR | A VENIR
+
+| CR du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
+| ODJ du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
 | Cahier de Recettes | A VENIR | A VENIR | A VENIR | A VENIR
+| Compte Rendu d'Avancement | A VENIR | A VENIR | A VENIR | A VENIR
 
 |===
+
+==== Commentaires professeurs :
+
+A VENIR
