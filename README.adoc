@@ -12,6 +12,16 @@ Repo de la SAE Développement d'application du S3
  Samuel BOUR : SamSamKDBX 
  Severin VON ALLMEN : Severinvlm        
 
+==== Planning des sprints
+
+|===
+| Sprint | Période | Évaluation
+
+| Sprint 1 | 05/01 → 13/01 | 14/01
+| Sprint 2 | 14/01 → 23/01 | Évaluation finale
+|===
+
+
 ==== Documents :
 |===
 | Document        | Lien Sprint 1     | Commentaires        | Lien Sprint 2     | Commentaires
