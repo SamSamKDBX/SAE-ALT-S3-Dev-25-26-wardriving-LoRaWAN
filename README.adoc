@@ -26,9 +26,9 @@ Repo de la SAE Développement d'application du S3
 |===
 | Document        | Lien Sprint 1     | Commentaires        | Lien Sprint 2     | Commentaires
 
-| Cahier de Recettes | A VENIR | A VENIR | A VENIR | A VENIR
 | Backlog Produit       | A VENIR | A VENIR | A VENIR | A VENIR
 | CR       | A VENIR | A VENIR | A VENIR | A VENIR
 | ODJ       | A VENIR | A VENIR | A VENIR | A VENIR
+| Cahier de Recettes | A VENIR | A VENIR | A VENIR | A VENIR
 
 |===
