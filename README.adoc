@@ -3,14 +3,9 @@ Repo de la SAE Développement d'application du S3
 
 
 ==== Présentation de l'équipe et rôles respectifs :
- Product Owner : Lucas COSTAGLIOLA
- SCRUM Master : Samuel BOUR
- Développeur : Severin VON ALLMEN
-
-==== Correspondance des pseudos GitHub :
- Lucas COSTAGLIOLA : LucasInFrance
- Samuel BOUR : SamSamKDBX 
- Severin VON ALLMEN : Severinvlm        
+ Product Owner : Lucas COSTAGLIOLA (@LucasInFrance)
+ SCRUM Master : Samuel BOUR (@SamSamKDBX)
+ Développeur : Severin VON ALLMEN (@Severinvlm)
 
 ==== Planning des sprints
 
