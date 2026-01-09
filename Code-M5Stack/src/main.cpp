@@ -73,7 +73,7 @@ void loop() {
     M5.Display.println("SIGNAL PERDU !");
     M5.Display.println();
     M5.Display.setTextColor(ORANGE);
-    M5.Display.print("Derniere position:");
+    M5.Display.print("Depuis :");
     M5.Display.setTextColor(WHITE);
     M5.Display.print((millis() - lastGPSUpdate) / 1000);
     M5.Display.println(" sec");
