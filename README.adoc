@@ -28,7 +28,7 @@ Repo de la SAE Développement d'application du S3
 |===
 
 |===
-| Document        | Lien Sprint 1     | Commentaires        | Lien Sprint 2     | Commentaires
+| Document        | Lien Sprint 1     | Retour        | Lien Sprint 2     | Retour
 
 
 | CR du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
@@ -38,6 +38,6 @@ Repo de la SAE Développement d'application du S3
 
 |===
 
-==== Commentaires professeurs :
+==== Retours professeurs :
 
 A VENIR
