@@ -31,8 +31,8 @@ Repo de la SAE Développement d'application du S3
 | Document        | Lien Sprint 1     | Retour        | Lien Sprint 2     | Retour
 
 
+| ODJ du Sprint Retrospectif      | A VENIR | A VENIR | A VENIR | A VENIR
 | CR du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
-| ODJ du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
 | Cahier de Recettes / Journal de Tests | A VENIR | A VENIR | A VENIR | A VENIR
 | Document Utilisateur / Administration  | A VENIR | A VENIR | A VENIR | A VENIR
 
