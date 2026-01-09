@@ -1,8 +1,8 @@
 ==== Cahier des Recettes
 
 |===
-| Sprint | Période | Évaluation
+| Test | Résultat | Conclusion
 
-| Sprint 1 | 05/01 → 13/01 | 14/01
-| Sprint 2 | 14/01 → 23/01 | Évaluation finale
+| *** | ***| ***
+| *** |*** | ***
 |===
