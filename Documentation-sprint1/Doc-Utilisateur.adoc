@@ -1,0 +1,276 @@
+
+= Documentation utilisateur - Wardriving LoRaWAN Sprint 1
+:doctype: book
+:author: WaveGlide interactive
+:revnumber: 1.0
+:revdate: 2025-05-17
+:icons: font
+:toc: left
+:toclevels: 2
+:sectnums:
+
+
+
+// Table des Matières
+:toc: macro
+:toclevels: 3
+:toc-title: Sommaire
+
+toc::[]
+
+
+// Footer
+[.text-left]
+**BOUR Samuel - COSTAGLIOLA Lucas - VON ALLMEN Séverin**
+
+**Wardriving - LoRaWAN - Sprint 1**
+
+**À destination de M. Rémi Boulle**
+
+**Fait le 12/01/2026**
+
+
+== Répartition du travail
+
+Pour le Sprint 1 il y avais 2 grande partie:
+
+- La Programmation du M5 pour mettre en place les base pour le Wardriving 
+- la Rédaction de la documentation utilisateur de ce Sprint 1
+
+Cela a donc été réalisé collectivement par les différents membres du groupe.
+
+== Introduction
+
+L'application web du wardriving à pour but de pouvoir éffectuer du mapping sur le terrain de l'IUT, on va connnecter le M5 à un réseau internet et il va nous afficher dans une permière partie le nombre de satélite qui on trouvé le M5,
+puis dans une deuxième partie le M5 va nous afficher le SNR (la qualité du réseau LoRaWAN)
+
+== Installation de l’application
+
+=== Pré-requis
+
+Pour effectuer le mapping
+
+
+
+'''
+
+=== Lancement de l’application web
+
+'''
+
+L’application s’affiche alors sur votre écran.
+
+
+
+'''
+
+
+[[Mapping]]
+== Gérer le Mapping
+Afin d’accéder à la gestion du mapping, sélectionnez le menu ...
+
+
+
+=== Consulter le mapping 
+Afin de consulter les mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+
+'''
+
+
+Pour finaliser cette consultation vous pouvez sélectionner un mapping pour voir apparaître le résultat au complet du wardriving au sein du batiment de l'IUT
+
+=== Créer un nouveau Mapping
+Afin de créer un mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+
+'''
+
+
+Pour créer votre nouveau mapping, cliquez sur le bouton “Nouveau” comme sur l’image ci-dessus.
+
+
+'''
+Il est important de remplir **tous les champs** afin de pouvoir enregistrer le nouveau mapping.
+Si des informations dans des champs sont manquantes ou bien erronées, un message
+d’erreur vous informera des modifications à apporter :
+
+'''
+
+Après avoir rempli ou corrigé tous les champs, il vous suffit de cliquer sur :
+
+  - “Enregistrer”, ce qui aura pour conséquence de valider la création du mapping.
+  - “Annuler”, ce qui aura pour conséquence d’annuler la création du mapping.
+
+Si vous avez cliqué sur “Enregistrer”, vous pourrez par la suite observer le nouveau mapping
+créé dans la liste.
+
+
+=== Modifier le Mapping
+Afin de modifier le mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+
+'''
+
+
+
+Pour modifier un mapping, sélectionnez celui que vous souhaitez changer.
+
+'''
+
+
+Cliquez ensuite sur le bouton “Modifier”.
+
+'''
+
+
+Une nouvelle fenêtre apparaît alors, permettant de changer les diverses informations concernant ce mapping.
+
+'''
+
+
+
+Remplissez les différents champs comme vous le souhaitez et cliquez ensuite sur “Enregistrer”.
+
+'''
+
+Il est important de remplir tous les champs afin de pouvoir enregistrer le nouveau mapping.
+Si des informations dans des champs sont manquantes ou bien erronées, un message
+d’erreur vous informera des modifications à apporter :
+
+
+'''
+
+Après avoir effectué toutes les modifications voulu vous pouvez :
+
+- “Enregistrer”, ce qui aura pour conséquence de valider les modifications apportées
+au mapping.
+- “Annuler”, ce qui aura pour conséquence d’annuler les modifications.
+
+Si vous avez cliqué sur “Enregistrer”, vous pourrez toujours observer le mapping dans la liste.
+
+=== Supprimer un Mapping
+
+Afin de supprimer un mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer les Mapping.>>
+
+'''
+
+
+
+Dans la liste des mappings, sélectionnez tout d’abord le mapping que vous désirez supprimer .
+
+'''
+
+
+Après avoir choisi le mapping, cliquez sur le bouton “Supprimer”.
+
+'''
+
+
+Une fenêtre de confirmation apparaît alors sur votre écran, choisissez “OK” si vous
+confirmez la suppression et choisissez “Annuler” si vous désirez arrêter la procédure.
+
+'''
+
+
+Après avoir cliqué sur le bouton “OK” vous pourrez constater que le mapping a bien disparu.
+
+[[utilisateur]]
+== Gérer les utilisateurs
+
+Afin de gérer les utilisateurs sur cette application, dirigez vous vers le menu nommé “Gestion des utilisateurs”. 
+
+Notez qu'il est **nécessaire** d’être connecté pour **accéder** à cette fonctionnalité.
+
+
+=== Consulter les utilisateurs
+
+Afin de consulter les utilisateurs, rendez-vous d’abord sur la fenêtre de gestion des
+utilisateurs <<utilisateur, cf.Gérer les utilisateurs.>>
+
+'''
+
+
+Une fois sur la fenêtre de gestion des utilisateurs, vous apercevrez la liste des différents
+utilisateurs enregistrés.
+
+=== Créer un utilisateur
+
+Afin de créer un utilisateur, rendez-vous d’abord sur la fenêtre de gestion des utilisateurs <<utilisateur, cf.Gérer les utilisateurs.>>
+
+'''
+
+
+Une fois sur la fenêtre de gestion des utilisateurs, cliquez sur le bouton “Nouvel utilisateur” .
+
+'''
+
+
+Une fenêtre permettant de créer un nouvel utilisateur apparaît donc, entrez son nom, mot de passe et rôle (obligatoires).
+
+
+'''
+
+
+Une fois tous les champs remplis, cliquez sur le bouton “Valider” pour confirmer la création du nouvel utilisateur. 
+
+Cliquez sur “Annuler” pour annuler la création.
+
+'''
+
+
+Si des informations dans des champs sont manquantes ou bien erronées, un message d’erreur vous informera des modifications à apporter.
+
+'''
+
+
+
+Vous pouvez ensuite constater que le nouvel utilisateur créé a été ajouté dans la liste.
+
+=== Modifier un utilisateur
+
+Afin de modifier un utilisateur, rendez-vous d’abord sur la fenêtre de gestion des utilisateurs <<utilisateur, cf.Gérer les utilisateurs.>>
+
+'''
+
+
+
+Une fois sur la page de gestion des utilisateurs, sélectionnez l’utilisateur que vous voulez modifier. Cliquez ensuite sur le bouton “Modifier”.
+
+'''
+
+
+Une fenêtre permettant de modifier l’utilisateur apparaît donc, entrez son nom, mot de
+passe et rôle (obligatoires). 
+
+- Cliquez sur “Valider” lorsque tous les champs sont bien remplis afin d’enregistrer les modifications. 
+
+- Cliquez sur “Annuler” pour annuler les modifications.
+
+'''
+
+
+
+Si des informations dans des champs sont manquantes ou bien erronées, un message
+d’erreur vous informera des modifications à apporter.
+
+=== Supprimer un utilisateur
+
+Afin de supprimer un utilisateur, rendez-vous d’abord sur la fenêtre de gestion des utilisateurs <<utilisateur, cf.Gérer les utilisateurs.>>
+
+'''
+
+
+Une fois sur la fenêtre de gestion des utilisateurs, sélectionnez l’utilisateur que vous désirez supprimer comme sur l’image ci-dessus.
+
+'''
+
+
+
+Cliquez ensuite sur le bouton “Supprimer”.
+
+'''
+
+
+Une fenêtre de confirmation s’affiche.
+
+- Cliquez sur “OK” pour valider la suppression de l’utilisateur. 
+
+- Cliquez sur “Annuler” pour annuler la suppression.
