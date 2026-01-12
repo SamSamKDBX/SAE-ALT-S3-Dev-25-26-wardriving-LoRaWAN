@@ -1,7 +1,6 @@
-= Cahier de tests - LiveTournois V2
-WaveGlide interactive
+= Cahier des Recettes - Wardriving LoRaWAN 
 :doctype: book
-:author: WaveGlide interactive
+:author: 
 :revnumber: 2.0
 :revdate: 2025-06-10
 :icons: font
