@@ -17,7 +17,7 @@ Repo de la SAE Développement d'application du S3
 |===
 
 
-==== Documents :
+==== Livrables :
 
 |===
 | Document        | Lien      
@@ -28,16 +28,17 @@ Repo de la SAE Développement d'application du S3
 |===
 
 |===
-| Document        | Lien Sprint 1     | Commentaires        | Lien Sprint 2     | Commentaires
+| Document        | Lien Sprint 1     | Retour        | Lien Sprint 2     | Retour
 
 
+| ODJ du Sprint Retrospectif      | link:Documentation-sprint1/ODJ_SEA_LoRaWAN.pdf[ODJ] | A VENIR | A VENIR | A VENIR
 | CR du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
-| ODJ du Sprint Retrospectif       | A VENIR | A VENIR | A VENIR | A VENIR
-| Cahier de Recettes | A VENIR | A VENIR | A VENIR | A VENIR
-| Compte Rendu d'Avancement | A VENIR | A VENIR | A VENIR | A VENIR
+| Cahier de Recettes / Journal de Tests | A VENIR | A VENIR | A VENIR | A VENIR
+| Document Utilisateur / Administration  | A VENIR | A VENIR | A VENIR | A VENIR
+
 
 |===
 
-==== Commentaires professeurs :
+==== Retours professeurs :
 
 A VENIR
