@@ -3,8 +3,6 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
-#include "SCD30.h"
-#include <base64.h>
 #include <TinyGPSPlus.h> // Bibliothèque pour lire les données GPS
 #include "../config.h"    // Configuration du M5Stack
 
@@ -31,7 +29,6 @@ static void pollGPS()
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récupération des données SNR #
 // #-----------------------------------------------------------------#
-uint8_t compteur = 0;
 
 // This EUI must be in little-endian format, so least-significant-byte
 // first. When copying an EUI from ttnctl output, this means to reverse
@@ -76,7 +73,6 @@ void printHex2(unsigned v)
 
 static bool gpsIsFresh()
 {
-  // age() = ms depuis la dernière mise à jour décodée par TinyGPS++
   return gps.location.isValid() && gps.location.age() < GPS_TIMEOUT;
 }
 
@@ -91,7 +87,7 @@ void do_send(osjob_t *j)
   M5.update();
   pollGPS();
 
-  // JSON compact (attention: LoRaWAN => payload court)
+
   if (gpsIsFresh())
   {
     // Exemple:
@@ -113,10 +109,7 @@ void do_send(osjob_t *j)
 
   LMIC_setTxData2(1, (unsigned char *)mydata, strlen(mydata), 1);
 
-  compteur = compteur + 1;
-  Serial.print(" Envoi #");
-  Serial.print(compteur);
-  Serial.print(" => ");
+  Serial.print("Envoi => ");
   Serial.println(mydata);
   Serial.println(F("Packet queued"));
 }
@@ -210,7 +203,6 @@ void onEvent(ev_t ev)
     Serial.println(F("EV_RESET"));
     break;
   case EV_RXCOMPLETE:
-    // data received in ping slot
     Serial.println(F("EV_RXCOMPLETE"));
     break;
   case EV_LINK_DEAD:
@@ -219,14 +211,6 @@ void onEvent(ev_t ev)
   case EV_LINK_ALIVE:
     Serial.println(F("EV_LINK_ALIVE"));
     break;
-  /*
-  || This event is defined but not used in the code. No
-  || point in wasting codespace on it.
-  ||
-  || case EV_SCAN_FOUND:
-  ||    Serial.println(F("EV_SCAN_FOUND"));
-  ||    break;
-  */
   case EV_TXSTART:
     Serial.println(F("EV_TXSTART"));
     break;
@@ -234,7 +218,6 @@ void onEvent(ev_t ev)
     Serial.println(F("EV_TXCANCELED"));
     break;
   case EV_RXSTART:
-    /* do not print anything -- it wrecks timing */
     break;
   case EV_JOIN_TXCOMPLETE:
     Serial.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
@@ -253,14 +236,8 @@ void setup()
   auto cfg = M5.config();
   M5.begin(cfg);
   M5.Power.begin();
-
-  // IMPORTANT: augmenter le buffer RX avant begin (évite l'overflow si loop est "lente")
   Serial2.setRxBufferSize(1024);
-
-  // GPS sur UART2 (si tu n'utilises pas le TX, tu peux mettre -1)
   Serial2.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
-
-  // Initialiser du moniteur série
   Serial.begin(115200);
   while (!Serial)
   {
@@ -272,25 +249,10 @@ void setup()
   M5.Display.setTextSize(2);
   M5.Display.fillScreen(BLACK);
   M5.Display.setCursor(0, 0);
-  M5.Display.println("Starting...");
-  M5.Display.println("Recherche GPS...");
+  M5.Display.println("Starting...\nRecherche GPS...");
   M5.Display.println();
   M5.Display.setTextColor(WHITE);
-  M5.Display.println("Verifiez:");
-  M5.Display.println("- Antenne branchee");
-  M5.Display.println("- Etre dehors");
-  M5.Display.println("- Attendre 1-2 min");
-
-  // Affichage d'un message de départ sur le moniteur série
-  Serial.println(F("Starting..."));
-  // Attendre 4s
-  while (millis() < 4000)
-  {
-    // Afficher un message d'attente
-    Serial.print("millis() = ");
-    Serial.println(millis());
-    delay(500);
-  }
+  M5.Display.println("Verifiez:\n- Antenne branchee\n- Etre dehors\n- Attendre 1-2 min");
 
   // Initialisation LMIC
   os_init();
