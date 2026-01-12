@@ -5,17 +5,27 @@
 #include <SPI.h>
 #include "SCD30.h"
 #include <base64.h>
-#include <TinyGPSPlus.h>    // Bibliothèque pour lire les données GPS
+#include <TinyGPSPlus.h> // Bibliothèque pour lire les données GPS
 
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récuparation des données GPS #
 // #-----------------------------------------------------------------#
 TinyGPSPlus gps;
 unsigned long lastGPSUpdate = 0; // dernière position GPS
-#define GPS_TIMEOUT 10000  // Délai maximum sans signal GPS 
+#define GPS_TIMEOUT 10000        // Délai maximum sans signal GPS
 
-#define GPS_RX 16  // Le fil qui REÇOIT les données du GPS
-#define GPS_TX 17  // Le fil qui ENVOIE des données au GPS (pas utilisé ici)
+#define GPS_RX 16 // Le fil qui REÇOIT les données du GPS
+#define GPS_TX 17 // Le fil qui ENVOIE des données au GPS (pas utilisé ici)
+
+static uint32_t lastGpsLostUiMs = 0;
+
+static void pollGPS()
+{
+  while (Serial2.available() > 0)
+  {
+    gps.encode(Serial2.read());
+  }
+}
 
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récupération des données SNR #
@@ -63,27 +73,51 @@ void printHex2(unsigned v)
   Serial.print(v, HEX);
 }
 
+static bool gpsIsFresh()
+{
+  // age() = ms depuis la dernière mise à jour décodée par TinyGPS++
+  return gps.location.isValid() && gps.location.age() < GPS_TIMEOUT;
+}
+
 void do_send(osjob_t *j)
 {
-  // Check if there is not a current TX/RX job running
   if (LMIC.opmode & OP_TXRXPEND)
   {
     Serial.println(F("OP_TXRXPEND, not sending"));
+    return;
+  }
+
+  M5.update();
+  pollGPS();
+
+  // JSON compact (attention: LoRaWAN => payload court)
+  if (gpsIsFresh())
+  {
+    // Exemple:
+    // {"type":"gps","lat":48.856613,"lon":2.352222,"sat":7,"age":120}
+    snprintf(
+        mydata,
+        sizeof(mydata),
+        "{\"type\":\"gps\",\"lat\":%.6f,\"lon\":%.6f,\"sat\":%lu,\"age\":%lu}",
+        gps.location.lat(),
+        gps.location.lng(),
+        (unsigned long)gps.satellites.value(),
+        (unsigned long)gps.location.age());
   }
   else
   {
-    // Code rajouté pour récupérer les données du capteur
-    M5.update();
-    snprintf((char *)mydata, sizeof(mydata), "TEST");
-
-    // Prepare upstream data transmission at the next possible time.
-    LMIC_setTxData2(1, (unsigned char *)mydata, strlen(mydata), 1); // 1 pour confirmation du serveur
-    compteur = compteur + 1;
-    Serial.print(" Envoi du message : ");
-    Serial.println(compteur);
-    Serial.println(F("Packet queued"));
+    // Pas de fix / donnée trop vieille
+    snprintf(mydata, sizeof(mydata), "{\"type\":\"gps\",\"fix\":false}");
   }
-  // Next TX is scheduled after TX_COMPLETE event.
+
+  LMIC_setTxData2(1, (unsigned char *)mydata, strlen(mydata), 1);
+
+  compteur = compteur + 1;
+  Serial.print(" Envoi #");
+  Serial.print(compteur);
+  Serial.print(" => ");
+  Serial.println(mydata);
+  Serial.println(F("Packet queued"));
 }
 
 void onEvent(ev_t ev)
@@ -215,10 +249,14 @@ void onEvent(ev_t ev)
 void setup()
 {
   // Initialiser la M5 stack
-  auto cfg = M5.config(); // Assign a structure for initializing M5Stack
-  M5.begin(cfg);          // Init M5Core. Initialize M5Core
-  M5.Power.begin();       // Initialize power management
-  // Initialisation de la communication avec le GPS
+  auto cfg = M5.config();
+  M5.begin(cfg);
+  M5.Power.begin();
+
+  // IMPORTANT: augmenter le buffer RX avant begin (évite l'overflow si loop est "lente")
+  Serial2.setRxBufferSize(1024);
+
+  // GPS sur UART2 (si tu n'utilises pas le TX, tu peux mettre -1)
   Serial2.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
 
   // Initialiser du moniteur série
@@ -227,7 +265,7 @@ void setup()
   {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-
+  
   // Initialiser l'ecran LCD
   M5.Display.setTextColor(GREEN);
   M5.Display.setTextSize(2);
@@ -260,32 +298,18 @@ void setup()
 
   // Start job (sending automatically starts OTAA too)
   do_send(&sendjob);
-  
-  // Partie GPS
-  auto cfg = M5.config();
-  M5.begin(cfg); 
-  Serial.begin(115200);
-  Serial2.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
-
 }
 
 void loop()
 {
-  // Partie SNR
-  os_runloop_once();
+  // Poll GPS le plus souvent possible
+  pollGPS();
 
   // Partie GPS
-  // Tant qu'il y a des données qui arrivent du GPS
-  while (Serial2.available() > 0) {
-    gps.encode(Serial2.read());
-  }
-
-  // Si on a reçu une nouvelle position complète
-  if (gps.location.isUpdated()) {
-    // On mémorise l'heure de cette position
+  if (gps.location.isUpdated())
+  {
     lastGPSUpdate = millis();
 
-    // Affichage sur l'écran
     M5.Display.fillScreen(BLACK);
     M5.Display.setCursor(0, 0);
     M5.Display.setTextColor(YELLOW);
@@ -294,7 +318,7 @@ void loop()
     M5.Display.setTextColor(GREEN);
     M5.Display.print("Latitude: ");
     M5.Display.setTextColor(WHITE);
-    M5.Display.println(gps.location.lat(), 6); // 6 chiffres après la virgule
+    M5.Display.println(gps.location.lat(), 6);
     M5.Display.setTextColor(GREEN);
     M5.Display.print("Longitude: ");
     M5.Display.setTextColor(WHITE);
@@ -304,31 +328,41 @@ void loop()
     M5.Display.setTextColor(WHITE);
     M5.Display.println(gps.satellites.value());
 
-    // Affichage dans le moniteur série
     Serial.print("Position: ");
     Serial.print(gps.location.lat(), 6);
     Serial.print(", ");
     Serial.println(gps.location.lng(), 6);
   }
 
-  // Détection de perte de signal GPS (seulement si on en avait un avant)
-  if (lastGPSUpdate > 0 && (millis() - lastGPSUpdate) > GPS_TIMEOUT) {
-    M5.Display.fillScreen(BLACK);
-    M5.Display.setCursor(0, 0);
-    M5.Display.setTextColor(RED);
-    M5.Display.println("SIGNAL PERDU !");
-    M5.Display.println();
-    M5.Display.setTextColor(ORANGE);
-    M5.Display.print("Depuis :");
-    M5.Display.setTextColor(WHITE);
-    M5.Display.print((millis() - lastGPSUpdate) / 1000);
-    M5.Display.println(" sec");
-    M5.Display.println();
-    M5.Display.setTextColor(WHITE);
-    M5.Display.println("Verifiez:");
-    M5.Display.println("- Antenne GPS");
-    M5.Display.println("- Etre dehors");
-    M5.Display.println("- Vue du ciel");
-    delay(1000);
+  // Détection de perte de signal GPS (sans delay bloquant)
+  if (lastGPSUpdate > 0 && (millis() - lastGPSUpdate) > GPS_TIMEOUT)
+  {
+    if (millis() - lastGpsLostUiMs >= 1000)
+    {
+      lastGpsLostUiMs = millis();
+
+      M5.Display.fillScreen(BLACK);
+      M5.Display.setCursor(0, 0);
+      M5.Display.setTextColor(RED);
+      M5.Display.println("SIGNAL PERDU !");
+      M5.Display.println();
+      M5.Display.setTextColor(ORANGE);
+      M5.Display.print("Depuis :");
+      M5.Display.setTextColor(WHITE);
+      M5.Display.print((millis() - lastGPSUpdate) / 1000);
+      M5.Display.println(" sec");
+      M5.Display.println();
+      M5.Display.setTextColor(WHITE);
+      M5.Display.println("Verifiez:");
+      M5.Display.println("- Antenne GPS");
+      M5.Display.println("- Etre dehors");
+      M5.Display.println("- Vue du ciel");
+    }
   }
+
+  // Partie SNR (LMIC)
+  os_runloop_once();
+
+  // Repoll GPS après LMIC (utile si LMIC prend du temps)
+  pollGPS();
 }
