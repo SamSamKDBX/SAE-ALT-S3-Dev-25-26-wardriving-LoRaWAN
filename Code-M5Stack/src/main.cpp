@@ -6,6 +6,7 @@
 #include "SCD30.h"
 #include <base64.h>
 #include <TinyGPSPlus.h> // Bibliothèque pour lire les données GPS
+#include "../config.h"    // Configuration du M5Stack
 
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récuparation des données GPS #
@@ -40,13 +41,13 @@ static const u1_t PROGMEM APPEUI[8] = {0};
 void os_getArtEui(u1_t *buf) { memcpy_P(buf, APPEUI, 8); }
 
 // This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8] = {0x06, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C};
+static const u1_t PROGMEM DEVEUI[8] = {M5STACK_ID, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C};
 void os_getDevEui(u1_t *buf) { memcpy_P(buf, DEVEUI, 8); }
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
 // practice, a key taken from ttnctl can be copied as-is.
-static const u1_t PROGMEM APPKEY[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, 0x06};
+static const u1_t PROGMEM APPKEY[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, M5STACK_ID};
 void os_getDevKey(u1_t *buf) { memcpy_P(buf, APPKEY, 16); }
 
 char mydata[100];

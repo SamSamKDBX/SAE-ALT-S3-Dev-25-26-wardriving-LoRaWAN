@@ -2,10 +2,23 @@ import paho.mqtt.client as mqtt
 import json
 import ssl
 import base64
+import os
+import re
+
+# Lire la configuration depuis config.h
+config_h_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.h")
+with open(config_h_path, "r") as f:
+    content = f.read()
+    # Extraire la valeur de M5STACK_ID depuis config.h
+    match = re.search(r'#define\s+M5STACK_ID\s+0x([0-9A-Fa-f]+)', content)
+    if match:
+        M5STACK_ID = match.group(1).lower()
+    else:
+        raise ValueError("M5STACK_ID non trouvé dans config.h")
 
 # config
 BROKER = "chirpstack.iut-blagnac.fr"
-DEVEUI = "0c7e450102030106"
+DEVEUI = "0c7e4501020301" + M5STACK_ID
 PORT = 8883
 TOPIC = "application/6/device/" + DEVEUI + "/event/up"
 
