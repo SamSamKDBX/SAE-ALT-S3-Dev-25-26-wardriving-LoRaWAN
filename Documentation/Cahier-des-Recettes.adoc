@@ -1,8 +1,94 @@
-==== Cahier des Recettes
+= Cahier de tests - LiveTournois V2
+WaveGlide interactive
+:doctype: book
+:author: WaveGlide interactive
+:revnumber: 2.0
+:revdate: 2025-06-10
+:icons: font
+:toc: left
+:toclevels: 3
+:sectnums:
 
-|===
-| Test | Résultat | Conclusion
+// Table des Matières
+:toc: macro
+:toclevels: 3
+:toc-title: Sommaire
 
-| *** | ***| ***
-| *** |*** | ***
+toc::[]
+
+
+// Footer
+[.text-left]
+** COSTAGLIOLA Lucas - VON ALLMEN Séverin - BOUR Samuel**
+
+**Wardriving - LoRaWAN**
+
+**À destination de M. Rémi BOULLE**
+
+**Fait le 12/01/2026**
+
+== Contexte général
+
+*Contexte : Projet d’application pour Wardriving*
+
+
+*La nécessité du projet* : dans le cadre de son développement...
+
+*Objectif du projet* : L’objectif de ce projet est de développer une application à l’intention ...
+
+== Introduction
+
+Ce document a pour but de décrire les tests réalisés sur l’application web de Wardriving. Vous trouverez ci-dessous chacun des tests réalisés et chacun des résultats observés.
+
+== Pré-Requis
+
+Pour réaliser ces tests, il faut avoir accès au dépôt github du projet.
+
+== Tests d'interface
+
+=== Premier test
+
+====  Cas de Test 1 : XXX
+
+[cols="1,2,3,2,1", options="header"]
 |===
+| ID | Action | Comportement attendu | Pré-conditions | Résultat
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+
+| XXX
+| XXX
+| XXX
+| XXX
+| XXX
+|===
+
+'''
