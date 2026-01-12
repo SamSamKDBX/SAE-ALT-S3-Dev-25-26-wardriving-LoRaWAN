@@ -1,7 +1,7 @@
 
 = Documentation utilisateur - Wardriving LoRaWAN Sprint 1
 :doctype: book
-:author: WaveGlide interactive
+:author: 
 :revnumber: 1.0
 :revdate: 2025-05-17
 :icons: font
