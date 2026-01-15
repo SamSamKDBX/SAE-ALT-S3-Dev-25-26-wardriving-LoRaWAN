@@ -37,7 +37,7 @@ Repo de la SAE Développement d'application du S3
 
 
 | ODJ du Sprint Retrospectif      | link:Réunion-Sprint-1/ODJ_SEA_LoRaWAN.pdf[ODJ] | x 
-| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| x 
+| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| "ODJ TB. CR : il manque juste un point sur le sprint 2 (reste à faire technique notamment)."
 
 
 |===
