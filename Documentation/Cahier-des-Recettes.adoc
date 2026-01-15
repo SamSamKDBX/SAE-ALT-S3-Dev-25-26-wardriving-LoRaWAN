@@ -19,6 +19,8 @@ toc::[]
 
 === Présentation du projet
 
+**Client** : Rémi Boulle
+
 **Contexte** : Projet de wardriving LoRaWAN pour cartographier la couverture réseau LoRaWAN de l'IUT de Blagnac.
 
 **Nécessité du projet** : Dans le cadre du développement de l'infrastructure LoRaWAN de l'IUT, il est nécessaire de pouvoir évaluer et visualiser la qualité de la couverture réseau dans différentes zones du campus. Le wardriving permet d'identifier les zones de bonne et mauvaise couverture pour optimiser le positionnement des passerelles LoRaWAN.
