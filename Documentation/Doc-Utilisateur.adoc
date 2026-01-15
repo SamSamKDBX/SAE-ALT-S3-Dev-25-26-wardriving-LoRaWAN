@@ -1,12 +1,21 @@
-= Documentation utilisateur - Wardriving LoRaWAN
+= Documentation Utilisateur V2 - Wardriving LoRaWAN
 :doctype: book
-:author: BOUR Samuel - COSTAGLIOLA Lucas - VON ALLMEN Séverin
+:toc: macro
 :revnumber: 1.0
 :revdate: 2026-01-13
 :icons: font
-:toc: left
 :toclevels: 2
 :sectnums:
+:imagesdir: images
+
+
+*S3.A.01 - Développement d'Application - Alternants*
+
+*Groupe 3A* +
+*Lucas Costagliola - Samuel Bour  - Severin Von Allmen* +
+*Version 2.0 - 23 Janvier 2026*
+
+*Client : Rémi Boulle*
 
 // Table des Matières
 :toc: macro
