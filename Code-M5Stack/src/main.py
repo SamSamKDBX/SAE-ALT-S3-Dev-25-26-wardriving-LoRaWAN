@@ -42,7 +42,7 @@ def on_message(client, userdata, msg):
     # Affichage RF (SNR/RSSI)
     for passerelle in jsonMsg.get('rxInfo', []):
         print("\n-------------------")
-        print("Passerelle :", passerelle.get('name'))
+        print("Passerelle :", passerelle['name'])
         print("SNR :", passerelle.get('loRaSNR'))
         print("RSSI :", passerelle.get('rssi'))
 
