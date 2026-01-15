@@ -46,6 +46,6 @@ Repo de la SAE Développement d'application du S3
 Qualité (EP) : Vous avez mis l'US du sprint 2 dans le board mais il s'appelle toujours sprint1. Même les tâches de documentation peuvent être rattachées à une US. Doc : revoir les éléments à mettre sur la "page de garde" : version date, équipe, nom client (cf S2). sinon doc user TB. Est- ce que le client souhaite une doc technique ? je ne l'ai pas dans les livrables ? ODJ TB. CR : il manque juste un point sur le sprint 2 (reste à faire technique notamment). Dans l'ensemble c'est du très bon travail, continuez !
 
 ifdef::env-github[]
-image=https://docs.google.com/spreadsheets/d/e/2PACX-1vRtGk-4u-mv4RE4q76-qFY-Iy48o1WzcqSP-upBv9doa23kDXzFfHmnZaux3pDt5g/pubchart?oid=9183741&format=image[link=https://docs.google.com/spreadsheets/d/e/2PACX-1vRtGk-4u-mv4RE4q76-qFY-Iy48o1WzcqSP-upBv9doa23kDXzFfHmnZaux3pDt5g/pubchart?oid=9183741&format=image]
+image:https://docs.google.com/spreadsheets/d/e/2PACX-1vRtGk-4u-mv4RE4q76-qFY-Iy48o1WzcqSP-upBv9doa23kDXzFfHmnZaux3pDt5g/pubchart?oid=9183741&format=image[link=https://docs.google.com/spreadsheets/d/e/2PACX-1vRtGk-4u-mv4RE4q76-qFY-Iy48o1WzcqSP-upBv9doa23kDXzFfHmnZaux3pDt5g/pubchart?oid=9183741&format=image]
 endif::[]
 
