@@ -40,21 +40,21 @@ def on_message(client, userdata, msg):
         f.write(json.dumps(jsonMsg) + "\n")
 
     # Affichage RF (SNR/RSSI)
-    for passerelle in jsonMsg.get('rxInfo', []):
+    for passerelle in jsonMsg['rxInfo']:
         print("\n-------------------")
         print("Passerelle :", passerelle['name'])
-        print("SNR :", passerelle.get('loRaSNR'))
-        print("RSSI :", passerelle.get('rssi'))
+        print("SNR :", passerelle['loRaSNR'])
+        print("RSSI :", passerelle['rssi'])
 
     # Récupérer la payload applicative en texte
     payload_text = None
 
-    obj = jsonMsg.get("object")
+    obj = jsonMsg["object"]
     if isinstance(obj, dict) and "mydata" in obj:
         payload_text = obj["mydata"]
     else:
         # fallback: décoder le champ base64 "data"
-        b64 = jsonMsg.get("data")
+        b64 = jsonMsg["data"]
         if b64:
             try:
                 payload_text = base64.b64decode(b64).decode("utf-8", errors="replace")
@@ -72,11 +72,11 @@ def on_message(client, userdata, msg):
         print("Payload non-JSON reçue :", payload_text)
         return
 
-    if app.get("type") == "gps" and app.get("fix", True):
-        lat = app.get("lat")
-        lon = app.get("lon")
-        sat = app.get("sat")
-        age = app.get("age")
+    if app["type"] == "gps" and app["fix"]:
+        lat = app["lat"]
+        lon = app["lon"]
+        sat = app["sat"]
+        age = app["age"]
         print(f"GPS => lat={lat} lon={lon} sat={sat} age={age}ms")
     else:
         print("GPS => pas de fix")
