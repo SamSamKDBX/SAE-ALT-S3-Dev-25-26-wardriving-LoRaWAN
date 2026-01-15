@@ -1,15 +1,12 @@
-
-= Documentation utilisateur - Wardriving LoRaWAN Sprint 1
+= Documentation utilisateur - Wardriving LoRaWAN
 :doctype: book
-:author: 
+:author: BOUR Samuel - COSTAGLIOLA Lucas - VON ALLMEN Séverin
 :revnumber: 1.0
-:revdate: 2025-05-17
+:revdate: 2026-01-13
 :icons: font
 :toc: left
 :toclevels: 2
 :sectnums:
-
-
 
 // Table des Matières
 :toc: macro
@@ -18,157 +15,294 @@
 
 toc::[]
 
-
-// Footer
-[.text-left]
-**BOUR Samuel - COSTAGLIOLA Lucas - VON ALLMEN Séverin**
-
-**Wardriving - LoRaWAN - Sprint 1**
-
-**À destination de M. Rémi Boulle**
-
-**Fait le 12/01/2026**
-
-
-== Répartition du travail
-
-Pour le Sprint 1 il y avais 2 grande partie:
-
-- La Programmation du M5 pour mettre en place les base pour le Wardriving 
-- la Rédaction de la documentation utilisateur de ce Sprint 1
-
-Cela a donc été réalisé collectivement par les différents membres du groupe.
-
 == Introduction
 
-L'application web du wardriving à pour but de pouvoir éffectuer du mapping sur le terrain de l'IUT, on va connnecter le M5 à un réseau internet et il va nous afficher dans une permière partie le nombre de satélite qui on trouvé le M5,
-puis dans une deuxième partie le M5 va nous afficher le SNR (la qualité du réseau LoRaWAN)
+=== Présentation du projet
 
-== Installation de l’application
+Le projet Wardriving LoRaWAN consiste à cartographier la couverture du réseau LoRaWAN de l'IUT de Blagnac en se déplaçant dans la zone avec un dispositif M5Stack équipé d'un module GPS et LoRaWAN.
 
-=== Pré-requis
+Le système permet de :
 
-Pour effectuer le mapping
+- Connaître sa position GPS actuelle (latitude, longitude, nombre de satellites)
+- Mesurer la qualité du signal LoRaWAN à chaque position
+- Transmettre ces données pour une visualisation ultérieure sur une carte interactive
 
+=== Objectifs
 
+Cette application permet aux utilisateurs de :
 
-'''
+- Visualiser en temps réel leur position GPS sur l'écran du M5Stack
+- Collecter des données de couverture LoRaWAN pendant leurs déplacements
+- Identifier les zones de bonne et mauvaise couverture réseau
 
-=== Lancement de l’application web
+== Matériel nécessaire
 
-'''
+=== Équipement requis
 
-L’application s’affiche alors sur votre écran.
+Pour utiliser le système de wardriving LoRaWAN, vous aurez besoin de :
 
+- **M5Stack Core** : Dispositif principal avec écran LCD
+- **Module LoRaWAN 868MHz** : Pour la communication avec le réseau LoRaWAN
+- **Module GPS** : Pour la géolocalisation (connecté sur Serial2, pins RX=16, TX=17)
+- **Antenne GPS** : Impérativement connectée au module GPS
+- **Antenne LoRaWAN 868MHz** : Pour optimiser la portée du signal
+- **Batterie ou alimentation USB** : Pour alimenter le M5Stack pendant les déplacements
 
+=== Vérifications avant utilisation
 
-'''
+Avant de démarrer le système, assurez-vous que :
 
+1. Les antennes GPS et LoRaWAN sont correctement branchées
+2. Le M5Stack est chargé ou connecté à une source d'alimentation
+3. Vous êtes en extérieur avec une vue dégagée du ciel pour le GPS
 
-[[Mapping]]
-== Gérer le Mapping
-Afin d’accéder à la gestion du mapping, sélectionnez le menu ...
+== Installation et configuration
 
+=== Prérequis logiciels
 
+- PlatformIO ou Arduino IDE
+- Bibliothèques nécessaires :
+  * M5Unified
+  * LMIC (LoRaWAN)
+  * TinyGPSPlus
 
-=== Consulter le mapping 
-Afin de consulter les mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+=== Configuration du M5Stack
 
-'''
+Avant de téléverser le code sur le M5Stack, vous devez configurer l'identifiant du dispositif :
 
+1. Ouvrez le fichier `config.h`
+2. Modifiez la valeur de `M5STACK_ID` selon votre dispositif :
 
-Pour finaliser cette consultation vous pouvez sélectionner un mapping pour voir apparaître le résultat au complet du wardriving au sein du batiment de l'IUT
+[source,cpp]
+----
+#define M5STACK_ID 0x1C  // Remplacer par l'ID de votre M5Stack
+----
 
-=== Créer un nouveau Mapping
-Afin de créer un mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+=== Téléversement du programme
 
-'''
+1. Connectez le M5Stack à votre ordinateur via USB
+2. Ouvrez le projet dans PlatformIO
+3. Sélectionnez le bon port COM
+4. Cliquez sur "Upload" pour téléverser le programme
+5. Le M5Stack redémarrera automatiquement
 
+== Utilisation du système
 
-Pour créer votre nouveau mapping, cliquez sur le bouton “Nouveau” comme sur l’image ci-dessus.
+=== Démarrage
 
+Au démarrage, le M5Stack affiche :
 
-'''
-Il est important de remplir **tous les champs** afin de pouvoir enregistrer le nouveau mapping.
-Si des informations dans des champs sont manquantes ou bien erronées, un message
-d’erreur vous informera des modifications à apporter :
+----
+Starting...
+Recherche GPS...
 
-'''
+Verifiez:
+- Antenne branchee
+- Etre dehors
+- Attendre 1-2 min
+----
 
-Après avoir rempli ou corrigé tous les champs, il vous suffit de cliquer sur :
+Le système tente de se connecter au réseau LoRaWAN (mode OTAA) et de trouver des satellites GPS.
 
-  - “Enregistrer”, ce qui aura pour conséquence de valider la création du mapping.
-  - “Annuler”, ce qui aura pour conséquence d’annuler la création du mapping.
+**IMPORTANT** : La première acquisition GPS peut prendre 1 à 2 minutes en extérieur. Soyez patient.
 
-Si vous avez cliqué sur “Enregistrer”, vous pourrez par la suite observer le nouveau mapping
-créé dans la liste.
+=== Écran principal - Position GPS
 
+Une fois le signal GPS acquis, l'écran affiche en temps réel :
 
-=== Modifier le Mapping
-Afin de modifier le mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer le Mapping.>>
+----
+=== MA POSITION ===
 
-'''
+Latitude: 43.648567
+Longitude: 1.373426
+Satellites: 8
+----
 
+Les informations se mettent à jour automatiquement dès que le GPS détecte un changement de position.
 
+**Code couleur de l'écran :**
 
-Pour modifier un mapping, sélectionnez celui que vous souhaitez changer.
+- **Jaune** : Titre de la section
+- **Vert** : Labels des informations
+- **Blanc** : Valeurs des données
 
-'''
+=== Détection de perte de signal GPS
 
+Si le signal GPS est perdu pendant plus de 10 secondes, l'écran affiche :
 
-Cliquez ensuite sur le bouton “Modifier”.
+----
+SIGNAL PERDU !
 
-'''
+Depuis : XX sec
 
+Verifiez:
+- Antenne GPS
+- Etre dehors
+- Vue du ciel
+----
 
-Une nouvelle fenêtre apparaît alors, permettant de changer les diverses informations concernant ce mapping.
+**En cas de perte de signal :**
 
-'''
+1. Vérifiez que l'antenne GPS est bien connectée
+2. Assurez-vous d'être en extérieur
+3. Évitez les zones avec obstacles (bâtiments, arbres denses)
+4. Attendez quelques instants que le signal soit retrouvé
 
+=== Transmission des données LoRaWAN
 
+Le M5Stack envoie automatiquement les données GPS via LoRaWAN toutes les 10 secondes.
 
-Remplissez les différents champs comme vous le souhaitez et cliquez ensuite sur “Enregistrer”.
+**Format des données envoyées (JSON) :**
 
-'''
+Avec signal GPS valide :
+[source,json]
+----
+{
+  "type": "gps",
+  "lat": 43.648567,
+  "lon": 1.373426,
+  "sat": 8,
+  "age": 120
+}
+----
 
-Il est important de remplir tous les champs afin de pouvoir enregistrer le nouveau mapping.
-Si des informations dans des champs sont manquantes ou bien erronées, un message
-d’erreur vous informera des modifications à apporter :
+Sans signal GPS :
+[source,json]
+----
+{
+  "type": "gps",
+  "fix": false
+}
+----
 
+Les données incluent :
 
-'''
+- **lat** : Latitude (6 décimales)
+- **lon** : Longitude (6 décimales)
+- **sat** : Nombre de satellites captés
+- **age** : Âge de la dernière position GPS en millisecondes
+- **fix** : Indicateur de présence ou absence de signal GPS
 
-Après avoir effectué toutes les modifications voulu vous pouvez :
+Le SNR (Signal-to-Noise Ratio) et les métadonnées LoRaWAN sont automatiquement ajoutés par le serveur LoRaWAN lors de la réception.
 
-- “Enregistrer”, ce qui aura pour conséquence de valider les modifications apportées
-au mapping.
-- “Annuler”, ce qui aura pour conséquence d’annuler les modifications.
+== Conseils d'utilisation pour le wardriving
 
-Si vous avez cliqué sur “Enregistrer”, vous pourrez toujours observer le mapping dans la liste.
+=== Préparation du parcours
 
-=== Supprimer un Mapping
+1. Chargez complètement le M5Stack avant de partir
+2. Planifiez votre itinéraire pour couvrir les zones d'intérêt
+3. Prévoyez d'être en extérieur pendant toute la durée du mapping
 
-Afin de supprimer un mapping, rendez vous d’abord sur la fenêtre de gestion des mapping <<Mapping, cf.Gérer les Mapping.>>
+=== Pendant le mapping
 
-'''
+1. Maintenez le M5Stack en position verticale pour optimiser la réception GPS
+2. Déplacez-vous à vitesse de marche normale (pas trop rapide)
+3. Surveillez l'écran pour vérifier que le GPS reste actif
+4. Les données sont envoyées automatiquement, aucune action n'est requise
 
+=== Zones à privilégier
 
+- **Espaces ouverts** : Pour une bonne réception GPS
+- **Différents étages** : Pour tester la couverture verticale
+- **Intérieurs/Extérieurs** : Pour comparer la qualité du signal
+- **Points éloignés des passerelles** : Pour identifier les limites de couverture
 
-Dans la liste des mappings, sélectionnez tout d’abord le mapping que vous désirez supprimer .
+== Messages et indicateurs
 
-'''
+=== Messages du moniteur série
 
+Si vous connectez le M5Stack à un ordinateur, vous pouvez suivre l'activité sur le moniteur série (115200 bauds) :
 
-Après avoir choisi le mapping, cliquez sur le bouton “Supprimer”.
+- `EV_JOINING` : Connexion au réseau LoRaWAN en cours
+- `EV_JOINED` : Connecté avec succès au réseau LoRaWAN
+- `Envoi => {...}` : Données GPS envoyées
+- `Packet queued` : Paquet en attente d'envoi
+- `EV_TXCOMPLETE` : Transmission terminée
+- `Position: XX.XXXXXX, YY.YYYYYY` : Position GPS mise à jour
 
-'''
+=== Résolution des problèmes courants
 
+[cols="1,2", options="header"]
+|===
+| Problème | Solution
 
-Une fenêtre de confirmation apparaît alors sur votre écran, choisissez “OK” si vous
-confirmez la suppression et choisissez “Annuler” si vous désirez arrêter la procédure.
+| Le GPS ne trouve pas de satellites
+| Assurez-vous d'être en extérieur avec une vue dégagée du ciel. Attendez 1-2 minutes. Vérifiez que l'antenne GPS est branchée.
 
-'''
+| L'écran affiche "SIGNAL PERDU !"
+| Déplacez-vous dans une zone plus ouverte. Vérifiez la connexion de l'antenne GPS.
 
+| Le M5Stack ne démarre pas
+| Vérifiez la charge de la batterie. Essayez de connecter le M5Stack via USB.
 
-Après avoir cliqué sur le bouton “OK” vous pourrez constater que le mapping a bien disparu.
+| Pas de connexion LoRaWAN
+| Vérifiez que l'antenne LoRaWAN est connectée. Assurez-vous d'être à portée d'une passerelle LoRaWAN.
 
+| Les données ne s'affichent pas
+| Vérifiez les messages sur le moniteur série. Attendez que le M5Stack se connecte au réseau LoRaWAN (EV_JOINED).
+|===
+
+== Spécifications techniques
+
+=== Paramètres GPS
+
+- **Débit série** : 9600 bauds
+- **Pins** : RX=16, TX=17
+- **Timeout** : 10 secondes sans signal
+- **Précision** : 6 décimales (environ 10cm)
+
+=== Paramètres LoRaWAN
+
+- **Fréquence** : 868 MHz (EU)
+- **Mode** : OTAA (Over-The-Air Activation)
+- **Intervalle d'envoi** : 10 secondes
+- **Port** : 1
+- **Confirmation** : Activée
+
+=== Pins utilisées
+
+[cols="1,2", options="header"]
+|===
+| Fonction | Pin
+
+| GPS RX | 16
+| GPS TX | 17
+| LoRa NSS | 5
+| LoRa RST | 26
+| LoRa DIO0 | 36
+| LoRa DIO1 | 35
+|===
+
+== Exploitation des données
+
+Les données collectées par le M5Stack sont reçues sur le serveur LoRaWAN via MQTT. Le serveur ajoute automatiquement :
+
+- Le SNR (Signal-to-Noise Ratio)
+- L'identifiant de la passerelle qui a reçu le signal
+- Le RSSI (Received Signal Strength Indicator)
+- L'horodatage de réception
+
+Ces données peuvent ensuite être exploitées pour créer une carte de couverture interactive montrant la qualité du réseau LoRaWAN en fonction de la position géographique.
+
+== Support et maintenance
+
+=== Entretien du matériel
+
+- Rechargez régulièrement la batterie du M5Stack
+- Vérifiez l'état des antennes avant chaque utilisation
+- Nettoyez l'écran LCD avec un chiffon doux
+
+=== Mises à jour
+
+Pour mettre à jour le programme :
+
+1. Récupérez la dernière version du code sur le dépôt GitHub
+2. Connectez le M5Stack via USB
+3. Téléversez le nouveau programme via PlatformIO
+
+=== Contact
+
+Pour toute question ou problème technique, contactez l'équipe de développement :
+
+- **GitHub** : SAE-ALT-S3-Dev-25-26-wardriving-LoRaWAN
+- **Équipe** : Lucas COSTAGLIOLA, Samuel BOUR, Séverin VON ALLMEN
