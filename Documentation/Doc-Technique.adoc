@@ -1,1 +1,2 @@
+Ici, montrer comment se fait l'installation pour par exemple un admin systeme de l'IUT. Pas l'utilisation, mais le download, installation, commandes a faire, etc... Pour le mettre sur une machine vierge.
 
