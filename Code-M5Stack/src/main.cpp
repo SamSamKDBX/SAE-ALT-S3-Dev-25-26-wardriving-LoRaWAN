@@ -3,8 +3,8 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
-#include <TinyGPSPlus.h> // Bibliothèque pour lire les données GPS
-#include "../config.h"    // Configuration du M5Stack
+#include <TinyGPSPlus.h>
+#include "../config.h"
 
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récuparation des données GPS #
@@ -37,15 +37,83 @@ static void pollGPS()
 static const u1_t PROGMEM APPEUI[8] = {0};
 void os_getArtEui(u1_t *buf) { memcpy_P(buf, APPEUI, 8); }
 
-// This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8] = {M5STACK_ID, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C};
-void os_getDevEui(u1_t *buf) { memcpy_P(buf, DEVEUI, 8); }
+// --- Ajout: parsing hex depuis macros injectées par PlatformIO ---
+static bool g_keysInit = false;
+static u1_t g_devEui[8];
+static u1_t g_appKey[16];
 
-// This key should be in big endian format (or, since it is not really a
-// number but a block of memory, endianness does not really apply). In
-// practice, a key taken from ttnctl can be copied as-is.
-static const u1_t PROGMEM APPKEY[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, M5STACK_ID};
-void os_getDevKey(u1_t *buf) { memcpy_P(buf, APPKEY, 16); }
+static int _hexval(char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+  if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+  return -1;
+}
+
+// Parse une string hex (accepte ":" "-" espaces) vers bytes.
+// Si reverse=true, inverse l'ordre des octets (utile DevEUI LMIC).
+static bool parseHexBytes(const char* s, uint8_t* out, size_t outLen, bool reverse) {
+  if (!s) return false;
+
+  // Collecte des nibbles valides
+  uint8_t tmp[32]; // suffisant pour 16 bytes
+  size_t tmpLen = 0;
+
+  int hi = -1;
+  for (const char* p = s; *p; ++p) {
+    int v = _hexval(*p);
+    if (v < 0) continue; // ignore séparateurs
+    if (hi < 0) {
+      hi = v;
+    } else {
+      if (tmpLen >= sizeof(tmp)) return false;
+      tmp[tmpLen++] = (uint8_t)((hi << 4) | v);
+      hi = -1;
+    }
+  }
+
+  if (hi >= 0) return false; // nombre impair de nibbles
+  if (tmpLen != outLen) return false;
+
+  if (reverse) {
+    for (size_t i = 0; i < outLen; ++i) out[i] = tmp[outLen - 1 - i];
+  } else {
+    for (size_t i = 0; i < outLen; ++i) out[i] = tmp[i];
+  }
+  return true;
+}
+
+static void initKeysOnce() {
+  if (g_keysInit) return;
+  g_keysInit = true;
+
+#if defined(LORAWAN_DEVEUI_STR) && defined(LORAWAN_APPKEY_STR)
+  // Si les strings sont vides ou invalides, on retombe sur l'ancien mode.
+  bool okDev = parseHexBytes(LORAWAN_DEVEUI_STR, g_devEui, sizeof(g_devEui), /*reverse=*/true);
+  bool okKey = parseHexBytes(LORAWAN_APPKEY_STR, g_appKey, sizeof(g_appKey), /*reverse=*/false);
+
+  if (okDev && okKey) {
+    return;
+  }
+#endif
+
+  // Fallback: comportement actuel basé sur M5STACK_ID / config.h
+  const u1_t fallbackDevEui[8] = {M5STACK_ID, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C};
+  const u1_t fallbackAppKey[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                                  0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, M5STACK_ID};
+
+  memcpy(g_devEui, fallbackDevEui, sizeof(g_devEui));
+  memcpy(g_appKey, fallbackAppKey, sizeof(g_appKey));
+}
+
+void os_getDevEui(u1_t *buf) {
+  initKeysOnce();
+  memcpy(buf, g_devEui, 8);
+}
+
+void os_getDevKey(u1_t *buf) {
+  initKeysOnce();
+  memcpy(buf, g_appKey, 16);
+}
 
 char mydata[100];
 static osjob_t sendjob;
