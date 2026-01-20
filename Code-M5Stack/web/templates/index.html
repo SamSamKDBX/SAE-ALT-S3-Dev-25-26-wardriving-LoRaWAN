@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte Wardriving LoRaWAN - IUT Blagnac</title>
+    <title>Carte Wardriving LoRaWAN</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -46,24 +46,66 @@
         }
         .info-panel {
             background: white;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            min-width: 180px;
+            min-width: 200px;
         }
         .info-panel h4 {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 14px;
             color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
         }
         .info-panel p {
             font-size: 12px;
-            margin: 4px 0;
+            margin: 6px 0;
             color: #666;
         }
         .info-panel .value {
             font-weight: bold;
             color: #333;
+        }
+        .info-panel .snr-value {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .snr-excellent { background: #22c55e; color: white; }
+        .snr-good { background: #eab308; color: white; }
+        .snr-medium { background: #f97316; color: white; }
+        .snr-poor { background: #ef4444; color: white; }
+        .waiting-message {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .waiting-message h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .waiting-message p {
+            color: #666;
+            font-size: 14px;
+        }
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -71,28 +113,16 @@
     <div id="map"></div>
 
     <script>
-        // Configuration de la zone IUT Blagnac
-        const BOUNDS = {
-            north: 43.6497,
-            south: 43.6481,
-            west: 1.3731,
-            east: 1.3756
-        };
-
         // Taille des cellules en metres
-        const CELL_SIZE_M = 10;
+        const CELL_SIZE_M = 20;
 
-        // Conversion degres vers metres (approximation a 43°N)
-        const LAT_DEG_TO_M = 111320;  // 1° lat = 111km
-        const LON_DEG_TO_M = 81000;   // 1° lon = 81km a 43°N
+        // Conversion degres vers metres (approximation)
+        const LAT_DEG_TO_M = 111320;  // 1 deg lat = 111km
+        const LON_DEG_TO_M = 81000;   // 1 deg lon = 81km a ~43-45N
 
         // Taille cellule en degres
         const CELL_LAT = CELL_SIZE_M / LAT_DEG_TO_M;
         const CELL_LON = CELL_SIZE_M / LON_DEG_TO_M;
-
-        // Calculer nombre de lignes et colonnes
-        const NUM_ROWS = Math.ceil((BOUNDS.north - BOUNDS.south) / CELL_LAT);
-        const NUM_COLS = Math.ceil((BOUNDS.east - BOUNDS.west) / CELL_LON);
 
         // Echelle de couleurs SNR
         const SNR_COLORS = {
@@ -109,6 +139,13 @@
             return SNR_COLORS.poor;
         }
 
+        function getSNRClass(snr) {
+            if (snr > 10) return 'snr-excellent';
+            if (snr >= 0) return 'snr-good';
+            if (snr >= -10) return 'snr-medium';
+            return 'snr-poor';
+        }
+
         function getSNRLabel(snr) {
             if (snr > 10) return 'Excellent';
             if (snr >= 0) return 'Bon';
@@ -116,15 +153,8 @@
             return 'Faible';
         }
 
-        // Trouver l'index de cellule pour une position
-        function getCellIndex(lat, lon) {
-            const row = Math.floor((BOUNDS.north - lat) / CELL_LAT);
-            const col = Math.floor((lon - BOUNDS.west) / CELL_LON);
-            return { row, col };
-        }
-
-        // Initialiser la carte
-        const map = L.map('map').setView([43.6489, 1.3743], 18);
+        // Initialiser la carte (vue par defaut sur la France)
+        const map = L.map('map').setView([46.2, 2.2], 6);
 
         // Ajouter le fond de carte OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -132,58 +162,110 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Stockage des cellules
+        // Stockage des cellules (grille mondiale virtuelle)
         const cells = {};
+        let firstDataReceived = false;
+        let lastSNR = null;
+        let lastRSSI = null;
+        let lastDataLength = 0;
+        let cellCount = 0;
+        let waitingControl = null;
+        let infoPanel = null;
+        let legend = null;
 
-        // Creer le quadrillage
-        function createGrid() {
-            for (let row = 0; row < NUM_ROWS; row++) {
-                for (let col = 0; col < NUM_COLS; col++) {
-                    const north = BOUNDS.north - (row * CELL_LAT);
-                    const south = north - CELL_LAT;
-                    const west = BOUNDS.west + (col * CELL_LON);
-                    const east = west + CELL_LON;
-
-                    const bounds = [[south, west], [north, east]];
-                    const rect = L.rectangle(bounds, {
-                        color: '#666',
-                        weight: 1,
-                        fillColor: '#ccc',
-                        fillOpacity: 0.3
-                    }).addTo(map);
-
-                    const key = `${row}-${col}`;
-                    cells[key] = {
-                        rectangle: rect,
-                        snr: null,
-                        rssi: null,
-                        lastUpdate: null
-                    };
-
-                    // Popup au clic
-                    rect.on('click', function() {
-                        const cell = cells[key];
-                        let content = `<b>Cellule [${row}, ${col}]</b><br>`;
-                        if (cell.snr !== null) {
-                            content += `SNR: ${cell.snr.toFixed(1)} dB<br>`;
-                            content += `RSSI: ${cell.rssi} dBm<br>`;
-                            content += `Qualite: ${getSNRLabel(cell.snr)}<br>`;
-                            content += `Mis a jour: ${new Date(cell.lastUpdate).toLocaleTimeString()}`;
-                        } else {
-                            content += 'Pas de donnees';
-                        }
-                        rect.bindPopup(content).openPopup();
-                    });
-                }
-            }
+        // Calculer l'index de cellule global pour une position
+        function getCellKey(lat, lon) {
+            const row = Math.floor(lat / CELL_LAT);
+            const col = Math.floor(lon / CELL_LON);
+            return `${row}_${col}`;
         }
 
-        // Mettre a jour une cellule avec les donnees SNR
+        // Calculer les bornes d'une cellule a partir de son index
+        function getCellBounds(row, col) {
+            const south = row * CELL_LAT;
+            const north = south + CELL_LAT;
+            const west = col * CELL_LON;
+            const east = west + CELL_LON;
+            return { north, south, east, west };
+        }
+
+        // Afficher le message d'attente
+        function showWaitingMessage() {
+            waitingControl = L.control({ position: 'topright' });
+            waitingControl.onAdd = function() {
+                const div = L.DomUtil.create('div', 'waiting-message');
+                div.innerHTML = `
+                    <h3>En attente de donnees...</h3>
+                    <div class="spinner"></div>
+                    <p>La carte se centrera sur<br>les premieres coordonnees<br>GPS recues.</p>
+                `;
+                return div;
+            };
+            waitingControl.addTo(map);
+        }
+
+        // Ajouter la legende
+        function addLegend() {
+            if (legend) return;
+            legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function() {
+                const div = L.DomUtil.create('div', 'legend');
+                div.innerHTML = `
+                    <h4>Signal SNR</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${SNR_COLORS.excellent}"></div>
+                        <span>> 10 dB (Excellent)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${SNR_COLORS.good}"></div>
+                        <span>0 a 10 dB (Bon)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${SNR_COLORS.medium}"></div>
+                        <span>-10 a 0 dB (Moyen)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${SNR_COLORS.poor}"></div>
+                        <span>< -10 dB (Faible)</span>
+                    </div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // Ajouter le panneau d'information
+        function addInfoPanel() {
+            if (infoPanel) return;
+            infoPanel = L.control({ position: 'topright' });
+            infoPanel.onAdd = function() {
+                const div = L.DomUtil.create('div', 'info-panel');
+                div.id = 'info-panel';
+                div.innerHTML = `
+                    <h4>Wardriving LoRaWAN</h4>
+                    <p>Points collectes: <span class="value data-count">0</span></p>
+                    <p>Cellules couvertes: <span class="value cell-count">0</span></p>
+                    <p>Derniere MAJ: <span class="value last-update">-</span></p>
+                    <p>Taille cellule: <span class="value">${CELL_SIZE_M}m x ${CELL_SIZE_M}m</span></p>
+                    <hr style="margin: 10px 0; border: none; border-top: 1px solid #eee;">
+                    <p>SNR actuel:</p>
+                    <div class="snr-value" id="current-snr">-</div>
+                    <p style="margin-top: 8px;">RSSI: <span class="value" id="current-rssi">-</span></p>
+                `;
+                return div;
+            };
+            infoPanel.addTo(map);
+        }
+
+        // Mettre a jour ou creer une cellule
         function updateCell(lat, lon, snr, rssi) {
-            const { row, col } = getCellIndex(lat, lon);
-            const key = `${row}-${col}`;
+            const key = getCellKey(lat, lon);
+            const row = Math.floor(lat / CELL_LAT);
+            const col = Math.floor(lon / CELL_LON);
+            const bounds = getCellBounds(row, col);
 
             if (cells[key]) {
+                // Cellule existante: mettre a jour avec le dernier SNR
                 const color = getColorForSNR(snr);
                 cells[key].rectangle.setStyle({
                     fillColor: color,
@@ -192,102 +274,116 @@
                 cells[key].snr = snr;
                 cells[key].rssi = rssi;
                 cells[key].lastUpdate = new Date().toISOString();
+            } else {
+                // Nouvelle cellule: la creer
+                const leafletBounds = [[bounds.south, bounds.west], [bounds.north, bounds.east]];
+                const color = getColorForSNR(snr);
+                const rect = L.rectangle(leafletBounds, {
+                    color: '#666',
+                    weight: 1,
+                    fillColor: color,
+                    fillOpacity: 0.7
+                }).addTo(map);
+
+                cells[key] = {
+                    rectangle: rect,
+                    snr: snr,
+                    rssi: rssi,
+                    lastUpdate: new Date().toISOString(),
+                    row: row,
+                    col: col
+                };
+
+                // Popup au clic
+                rect.on('click', function() {
+                    const cell = cells[key];
+                    let content = `<b>Cellule [${row}, ${col}]</b><br>`;
+                    content += `SNR: ${cell.snr.toFixed(1)} dB<br>`;
+                    content += `RSSI: ${cell.rssi} dBm<br>`;
+                    content += `Qualite: ${getSNRLabel(cell.snr)}<br>`;
+                    content += `Mis a jour: ${new Date(cell.lastUpdate).toLocaleTimeString()}`;
+                    rect.bindPopup(content).openPopup();
+                });
+
+                cellCount++;
+            }
+        }
+
+        // Mettre a jour le panneau d'information
+        function updateInfoPanel(dataCount, snr, rssi) {
+            const panel = document.getElementById('info-panel');
+            if (panel) {
+                panel.querySelector('.data-count').textContent = dataCount;
+                panel.querySelector('.cell-count').textContent = cellCount;
+                panel.querySelector('.last-update').textContent = new Date().toLocaleTimeString();
+
+                const snrDiv = document.getElementById('current-snr');
+                if (snr !== null) {
+                    snrDiv.textContent = `${snr.toFixed(1)} dB`;
+                    snrDiv.className = 'snr-value ' + getSNRClass(snr);
+                }
+
+                const rssiSpan = document.getElementById('current-rssi');
+                if (rssi !== null) {
+                    rssiSpan.textContent = `${rssi} dBm`;
+                }
             }
         }
 
         // Charger les donnees depuis le serveur
-        let lastDataLength = 0;
-
         async function fetchData() {
             try {
                 const response = await fetch('/data');
                 const data = await response.json();
 
-                // Traiter uniquement les nouvelles donnees
+                // Premiere donnee recue: centrer la carte et afficher les controles
+                if (!firstDataReceived && data.length > 0) {
+                    const firstEntry = data[0];
+                    if (firstEntry.latitude && firstEntry.longitude) {
+                        firstDataReceived = true;
+
+                        // Supprimer le message d'attente
+                        if (waitingControl) {
+                            map.removeControl(waitingControl);
+                            waitingControl = null;
+                        }
+
+                        // Centrer la carte
+                        map.setView([firstEntry.latitude, firstEntry.longitude], 18);
+
+                        // Ajouter les controles
+                        addLegend();
+                        addInfoPanel();
+                    }
+                }
+
+                // Traiter les nouvelles donnees
                 if (data.length > lastDataLength) {
                     const newEntries = data.slice(lastDataLength);
                     newEntries.forEach(entry => {
                         if (entry.latitude && entry.longitude && entry.snr !== undefined) {
                             updateCell(entry.latitude, entry.longitude, entry.snr, entry.rssi);
+                            lastSNR = entry.snr;
+                            lastRSSI = entry.rssi;
                         }
                     });
                     lastDataLength = data.length;
-                    updateInfoPanel(data.length);
+
+                    if (firstDataReceived) {
+                        updateInfoPanel(data.length, lastSNR, lastRSSI);
+                    }
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement des donnees:', error);
             }
         }
 
-        // Mettre a jour le panneau d'information
-        function updateInfoPanel(count) {
-            const panel = document.querySelector('.info-panel');
-            if (panel) {
-                panel.querySelector('.data-count').textContent = count;
-                panel.querySelector('.last-update').textContent = new Date().toLocaleTimeString();
-            }
-        }
-
-        // Ajouter la legende
-        const legend = L.control({ position: 'bottomright' });
-        legend.onAdd = function() {
-            const div = L.DomUtil.create('div', 'legend');
-            div.innerHTML = `
-                <h4>Signal SNR</h4>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: ${SNR_COLORS.excellent}"></div>
-                    <span>> 10 dB (Excellent)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: ${SNR_COLORS.good}"></div>
-                    <span>0 a 10 dB (Bon)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: ${SNR_COLORS.medium}"></div>
-                    <span>-10 a 0 dB (Moyen)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: ${SNR_COLORS.poor}"></div>
-                    <span>< -10 dB (Faible)</span>
-                </div>
-            `;
-            return div;
-        };
-        legend.addTo(map);
-
-        // Ajouter le panneau d'information
-        const infoPanel = L.control({ position: 'topright' });
-        infoPanel.onAdd = function() {
-            const div = L.DomUtil.create('div', 'info-panel');
-            div.innerHTML = `
-                <h4>Wardriving LoRaWAN</h4>
-                <p>Points collectes: <span class="value data-count">0</span></p>
-                <p>Derniere MAJ: <span class="value last-update">-</span></p>
-                <p>Grille: <span class="value">${NUM_ROWS}x${NUM_COLS}</span> cellules</p>
-            `;
-            return div;
-        };
-        infoPanel.addTo(map);
-
-        // Ajouter le contour de la zone
-        const zoneBounds = [
-            [BOUNDS.south, BOUNDS.west],
-            [BOUNDS.north, BOUNDS.east]
-        ];
-        L.rectangle(zoneBounds, {
-            color: '#3b82f6',
-            weight: 3,
-            fill: false
-        }).addTo(map);
-
         // Initialisation
-        createGrid();
+        showWaitingMessage();
         fetchData();
 
         // Polling toutes les 3 secondes
         setInterval(fetchData, 3000);
-
-        console.log(`Grille initialisee: ${NUM_ROWS} lignes x ${NUM_COLS} colonnes = ${NUM_ROWS * NUM_COLS} cellules`);
     </script>
 </body>
 </html>

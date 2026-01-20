@@ -9,7 +9,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/main.py /app/collector.py
-COPY config.h /app/config.h
 COPY web/ /app/web/
 
 ENV PYTHONUNBUFFERED=1

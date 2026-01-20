@@ -3,44 +3,28 @@ import json
 import ssl
 import base64
 import os
-import re
-from datetime import datetime
+from datetime import datetime, timezone
 
-# Chemin du fichier de donnees (configurable via variable d'environnement)
+# Configuration via variables d'environnement
 DATA_FILE = os.environ.get("DATA_FILE", "data.json")
+BROKER = os.environ.get("MQTT_BROKER", "chirpstack.iut-blagnac.fr")
+PORT = int(os.environ.get("MQTT_PORT", "8883"))
+M5STACK_ID = os.environ.get("M5STACK_ID", "06").lower()
 
-# Lire la configuration depuis config.h
-# Chercher d'abord dans /app (Docker), sinon chemin relatif (local)
-config_h_paths = [
-    "/app/config.h",
-    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.h")
-]
-
-config_h_path = None
-for path in config_h_paths:
-    if os.path.exists(path):
-        config_h_path = path
-        break
-
-if not config_h_path:
-    raise FileNotFoundError("config.h non trouve")
-
-with open(config_h_path, "r") as f:
-    content = f.read()
-    # Extraire la valeur de M5STACK_ID depuis config.h
-    match = re.search(r'#define\s+M5STACK_ID\s+0x([0-9A-Fa-f]+)', content)
-    if match:
-        M5STACK_ID = match.group(1).lower()
-    else:
-        raise ValueError("M5STACK_ID non trouve dans config.h")
-
-# config
-BROKER = "chirpstack.iut-blagnac.fr"
+# Construction du DevEUI et du topic MQTT
 DEVEUI = "0c7e4501020301" + M5STACK_ID
-PORT = 8883
 TOPIC = "application/6/device/" + DEVEUI + "/event/up"
 
-print("Starting...")
+print("=" * 50)
+print("Configuration Wardriving LoRaWAN")
+print("=" * 50)
+print(f"Broker MQTT : {BROKER}:{PORT}")
+print(f"M5Stack ID  : {M5STACK_ID}")
+print(f"DevEUI      : {DEVEUI}")
+print(f"Topic       : {TOPIC}")
+print(f"Fichier     : {DATA_FILE}")
+print("=" * 50)
+print("Demarrage...")
 
 # callbacks
 def on_connect(client, userdata, flags, reason_code, properties=None):
@@ -116,7 +100,7 @@ def on_message(client, userdata, msg):
 
         # Sauvegarder les donnees traitees pour la carte web
         entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "latitude": lat,
             "longitude": lon,
             "snr": best_snr,

@@ -7,6 +7,9 @@ services:
       - wardriving-data:/data
     environment:
       - DATA_FILE=/data/data.json
+      - MQTT_BROKER=${MQTT_BROKER}
+      - MQTT_PORT=${MQTT_PORT}
+      - M5STACK_ID=${M5STACK_ID}
     restart: unless-stopped
 
 volumes:
