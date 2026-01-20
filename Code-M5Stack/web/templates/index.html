@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Wardriving LoRaWAN - IUT Blagnac</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .legend {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            line-height: 1.6;
+        }
+        .legend h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 12px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        .info-panel {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            min-width: 180px;
+        }
+        .info-panel h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        .info-panel p {
+            font-size: 12px;
+            margin: 4px 0;
+            color: #666;
+        }
+        .info-panel .value {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Configuration de la zone IUT Blagnac
+        const BOUNDS = {
+            north: 43.6497,
+            south: 43.6481,
+            west: 1.3731,
+            east: 1.3756
+        };
+
+        // Taille des cellules en metres
+        const CELL_SIZE_M = 10;
+
+        // Conversion degres vers metres (approximation a 43°N)
+        const LAT_DEG_TO_M = 111320;  // 1° lat = 111km
+        const LON_DEG_TO_M = 81000;   // 1° lon = 81km a 43°N
+
+        // Taille cellule en degres
+        const CELL_LAT = CELL_SIZE_M / LAT_DEG_TO_M;
+        const CELL_LON = CELL_SIZE_M / LON_DEG_TO_M;
+
+        // Calculer nombre de lignes et colonnes
+        const NUM_ROWS = Math.ceil((BOUNDS.north - BOUNDS.south) / CELL_LAT);
+        const NUM_COLS = Math.ceil((BOUNDS.east - BOUNDS.west) / CELL_LON);
+
+        // Echelle de couleurs SNR
+        const SNR_COLORS = {
+            excellent: '#22c55e',  // > 10 dB
+            good: '#eab308',       // 0 a 10 dB
+            medium: '#f97316',     // -10 a 0 dB
+            poor: '#ef4444'        // < -10 dB
+        };
+
+        function getColorForSNR(snr) {
+            if (snr > 10) return SNR_COLORS.excellent;
+            if (snr >= 0) return SNR_COLORS.good;
+            if (snr >= -10) return SNR_COLORS.medium;
+            return SNR_COLORS.poor;
+        }
+
+        function getSNRLabel(snr) {
+            if (snr > 10) return 'Excellent';
+            if (snr >= 0) return 'Bon';
+            if (snr >= -10) return 'Moyen';
+            return 'Faible';
+        }
+
+        // Trouver l'index de cellule pour une position
+        function getCellIndex(lat, lon) {
+            const row = Math.floor((BOUNDS.north - lat) / CELL_LAT);
+            const col = Math.floor((lon - BOUNDS.west) / CELL_LON);
+            return { row, col };
+        }
+
+        // Initialiser la carte
+        const map = L.map('map').setView([43.6489, 1.3743], 18);
+
+        // Ajouter le fond de carte OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 22,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Stockage des cellules
+        const cells = {};
+
+        // Creer le quadrillage
+        function createGrid() {
+            for (let row = 0; row < NUM_ROWS; row++) {
+                for (let col = 0; col < NUM_COLS; col++) {
+                    const north = BOUNDS.north - (row * CELL_LAT);
+                    const south = north - CELL_LAT;
+                    const west = BOUNDS.west + (col * CELL_LON);
+                    const east = west + CELL_LON;
+
+                    const bounds = [[south, west], [north, east]];
+                    const rect = L.rectangle(bounds, {
+                        color: '#666',
+                        weight: 1,
+                        fillColor: '#ccc',
+                        fillOpacity: 0.3
+                    }).addTo(map);
+
+                    const key = `${row}-${col}`;
+                    cells[key] = {
+                        rectangle: rect,
+                        snr: null,
+                        rssi: null,
+                        lastUpdate: null
+                    };
+
+                    // Popup au clic
+                    rect.on('click', function() {
+                        const cell = cells[key];
+                        let content = `<b>Cellule [${row}, ${col}]</b><br>`;
+                        if (cell.snr !== null) {
+                            content += `SNR: ${cell.snr.toFixed(1)} dB<br>`;
+                            content += `RSSI: ${cell.rssi} dBm<br>`;
+                            content += `Qualite: ${getSNRLabel(cell.snr)}<br>`;
+                            content += `Mis a jour: ${new Date(cell.lastUpdate).toLocaleTimeString()}`;
+                        } else {
+                            content += 'Pas de donnees';
+                        }
+                        rect.bindPopup(content).openPopup();
+                    });
+                }
+            }
+        }
+
+        // Mettre a jour une cellule avec les donnees SNR
+        function updateCell(lat, lon, snr, rssi) {
+            const { row, col } = getCellIndex(lat, lon);
+            const key = `${row}-${col}`;
+
+            if (cells[key]) {
+                const color = getColorForSNR(snr);
+                cells[key].rectangle.setStyle({
+                    fillColor: color,
+                    fillOpacity: 0.7
+                });
+                cells[key].snr = snr;
+                cells[key].rssi = rssi;
+                cells[key].lastUpdate = new Date().toISOString();
+            }
+        }
+
+        // Charger les donnees depuis le serveur
+        let lastDataLength = 0;
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+
+                // Traiter uniquement les nouvelles donnees
+                if (data.length > lastDataLength) {
+                    const newEntries = data.slice(lastDataLength);
+                    newEntries.forEach(entry => {
+                        if (entry.latitude && entry.longitude && entry.snr !== undefined) {
+                            updateCell(entry.latitude, entry.longitude, entry.snr, entry.rssi);
+                        }
+                    });
+                    lastDataLength = data.length;
+                    updateInfoPanel(data.length);
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des donnees:', error);
+            }
+        }
+
+        // Mettre a jour le panneau d'information
+        function updateInfoPanel(count) {
+            const panel = document.querySelector('.info-panel');
+            if (panel) {
+                panel.querySelector('.data-count').textContent = count;
+                panel.querySelector('.last-update').textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        // Ajouter la legende
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <h4>Signal SNR</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${SNR_COLORS.excellent}"></div>
+                    <span>> 10 dB (Excellent)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${SNR_COLORS.good}"></div>
+                    <span>0 a 10 dB (Bon)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${SNR_COLORS.medium}"></div>
+                    <span>-10 a 0 dB (Moyen)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${SNR_COLORS.poor}"></div>
+                    <span>< -10 dB (Faible)</span>
+                </div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+
+        // Ajouter le panneau d'information
+        const infoPanel = L.control({ position: 'topright' });
+        infoPanel.onAdd = function() {
+            const div = L.DomUtil.create('div', 'info-panel');
+            div.innerHTML = `
+                <h4>Wardriving LoRaWAN</h4>
+                <p>Points collectes: <span class="value data-count">0</span></p>
+                <p>Derniere MAJ: <span class="value last-update">-</span></p>
+                <p>Grille: <span class="value">${NUM_ROWS}x${NUM_COLS}</span> cellules</p>
+            `;
+            return div;
+        };
+        infoPanel.addTo(map);
+
+        // Ajouter le contour de la zone
+        const zoneBounds = [
+            [BOUNDS.south, BOUNDS.west],
+            [BOUNDS.north, BOUNDS.east]
+        ];
+        L.rectangle(zoneBounds, {
+            color: '#3b82f6',
+            weight: 3,
+            fill: false
+        }).addTo(map);
+
+        // Initialisation
+        createGrid();
+        fetchData();
+
+        // Polling toutes les 3 secondes
+        setInterval(fetchData, 3000);
+
+        console.log(`Grille initialisee: ${NUM_ROWS} lignes x ${NUM_COLS} colonnes = ${NUM_ROWS * NUM_COLS} cellules`);
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  wardriving:
+    build: ./Code-M5Stack
+    ports:
+      - "8080:5000"
+    volumes:
+      - wardriving-data:/data
+    environment:
+      - DATA_FILE=/data/data.json
+    restart: unless-stopped
+
+volumes:
+  wardriving-data:
