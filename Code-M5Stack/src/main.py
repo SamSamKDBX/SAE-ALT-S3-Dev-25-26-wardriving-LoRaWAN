@@ -9,20 +9,28 @@ from datetime import datetime, timezone
 DATA_FILE = os.environ.get("DATA_FILE", "data.json")
 BROKER = os.environ.get("MQTT_BROKER", "chirpstack.iut-blagnac.fr")
 PORT = int(os.environ.get("MQTT_PORT", "8883"))
+MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "")
+MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", "")
+MQTT_USE_TLS = os.environ.get("MQTT_USE_TLS", "true").lower() == "true"
+
 M5STACK_ID = os.environ.get("M5STACK_ID", "06").lower()
+DEVEUI_PREFIX = os.environ.get("DEVEUI_PREFIX", "0c7e4501020301")
+APP_ID = os.environ.get("CHIRPSTACK_APP_ID", "6")
+TOPIC_TEMPLATE = os.environ.get("MQTT_TOPIC_TEMPLATE", "application/{app_id}/device/{deveui}/event/up")
 
 # Construction du DevEUI et du topic MQTT
-DEVEUI = "0c7e4501020301" + M5STACK_ID
-TOPIC = "application/6/device/" + DEVEUI + "/event/up"
+DEVEUI = DEVEUI_PREFIX + M5STACK_ID
+TOPIC = TOPIC_TEMPLATE.format(app_id=APP_ID, deveui=DEVEUI)
 
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
 print("=" * 50)
-print(f"Broker MQTT : {BROKER}:{PORT}")
-print(f"M5Stack ID  : {M5STACK_ID}")
-print(f"DevEUI      : {DEVEUI}")
-print(f"Topic       : {TOPIC}")
-print(f"Fichier     : {DATA_FILE}")
+print(f"Broker MQTT  : {BROKER}:{PORT} (TLS: {MQTT_USE_TLS})")
+print(f"Auth         : {'Oui' if MQTT_USERNAME else 'Non'}")
+print(f"M5Stack ID   : {M5STACK_ID}")
+print(f"DevEUI       : {DEVEUI}")
+print(f"Topic        : {TOPIC}")
+print(f"Fichier      : {DATA_FILE}")
 print("=" * 50)
 print("Demarrage...")
 
@@ -117,11 +125,13 @@ def on_message(client, userdata, msg):
 
 client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 
-# On veut TLS
-client.tls_set(tls_version=ssl.PROTOCOL_TLS_CLIENT)
+# Configuration TLS si active
+if MQTT_USE_TLS:
+    client.tls_set(tls_version=ssl.PROTOCOL_TLS_CLIENT)
 
-# Si besoin d'ids
-# client.username_pw_set("utilisateur", "motdepasse")
+# Authentification si configuree
+if MQTT_USERNAME:
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
 client.on_connect = on_connect
 client.on_message = on_message
