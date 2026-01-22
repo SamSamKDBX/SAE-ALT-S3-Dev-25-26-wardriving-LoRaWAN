@@ -24,7 +24,6 @@ TOPIC_TEMPLATE = os.environ.get("MQTT_TOPIC_TEMPLATE", "application/{app_id}/dev
 # Construction du DevEUI et du topic MQTT
 DEVEUI = DEVEUI_PREFIX + M5STACK_ID
 TOPIC = TOPIC_TEMPLATE.format(app_id=APP_ID, deveui=DEVEUI)
->>>>>>> fd50dd6ca7322d86326de0db774c1a45a9cffcd7
 
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
