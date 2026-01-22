@@ -16,21 +16,11 @@ MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "")
 MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", "")
 MQTT_USE_TLS = os.environ.get("MQTT_USE_TLS", "true").lower() == "true"
 
-M5STACK_ID = os.environ.get("M5STACK_ID", "06").lower()
-DEVEUI_PREFIX = os.environ.get("DEVEUI_PREFIX", "0c7e4501020301")
-APP_ID = os.environ.get("CHIRPSTACK_APP_ID", "6")
-TOPIC_TEMPLATE = os.environ.get("MQTT_TOPIC_TEMPLATE", "application/{app_id}/device/{deveui}/event/up")
-
-# Construction du DevEUI et du topic MQTT
-DEVEUI = DEVEUI_PREFIX + M5STACK_ID
-TOPIC = TOPIC_TEMPLATE.format(app_id=APP_ID, deveui=DEVEUI)
-
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
 print("=" * 50)
 print(f"Broker MQTT  : {BROKER}:{PORT} (TLS: {MQTT_USE_TLS})")
 print(f"Auth         : {'Oui' if MQTT_USERNAME else 'Non'}")
-print(f"M5Stack ID   : {M5STACK_ID}")
 print(f"DevEUI       : {DEVEUI}")
 print(f"Topic        : {TOPIC}")
 print(f"Fichier      : {DATA_FILE}")
