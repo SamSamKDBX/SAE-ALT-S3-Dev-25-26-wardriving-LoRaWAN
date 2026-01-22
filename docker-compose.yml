@@ -9,7 +9,9 @@ services:
       - DATA_FILE=/data/data.json
       - MQTT_BROKER=${MQTT_BROKER}
       - MQTT_PORT=${MQTT_PORT}
-      - M5STACK_ID=${M5STACK_ID}
+      - MQTT_TOPIC=${MQTT_TOPIC}
+      - LORAWAN_DEVEUI=${LORAWAN_DEVEUI}
+      - LORAWAN_APPKEY=${LORAWAN_APPKEY}
     restart: unless-stopped
 
 volumes:

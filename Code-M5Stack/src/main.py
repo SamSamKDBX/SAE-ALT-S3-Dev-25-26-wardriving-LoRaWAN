@@ -9,17 +9,14 @@ from datetime import datetime, timezone
 DATA_FILE = os.environ.get("DATA_FILE", "data.json")
 BROKER = os.environ.get("MQTT_BROKER", "chirpstack.iut-blagnac.fr")
 PORT = int(os.environ.get("MQTT_PORT", "8883"))
-M5STACK_ID = os.environ.get("M5STACK_ID", "06").lower()
-
-# Construction du DevEUI et du topic MQTT
-DEVEUI = "0c7e4501020301" + M5STACK_ID
-TOPIC = "application/6/device/" + DEVEUI + "/event/up"
+DEVEUI = os.environ.get("LORAWAN_DEVEUI", "0c7e450102030106").lower()
+APP_ID = os.environ.get("APP_ID", "6")
+TOPIC = os.environ.get("MQTT_TOPIC", f"application/{APP_ID}/device/{DEVEUI}/event/up").lower()
 
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
 print("=" * 50)
 print(f"Broker MQTT : {BROKER}:{PORT}")
-print(f"M5Stack ID  : {M5STACK_ID}")
 print(f"DevEUI      : {DEVEUI}")
 print(f"Topic       : {TOPIC}")
 print(f"Fichier     : {DATA_FILE}")
