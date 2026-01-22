@@ -29,19 +29,12 @@ TOPIC = TOPIC_TEMPLATE.format(app_id=APP_ID, deveui=DEVEUI)
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
 print("=" * 50)
-<<<<<<< HEAD
-print(f"Broker MQTT : {BROKER}:{PORT}")
-print(f"DevEUI      : {DEVEUI}")
-print(f"Topic       : {TOPIC}")
-print(f"Fichier     : {DATA_FILE}")
-=======
 print(f"Broker MQTT  : {BROKER}:{PORT} (TLS: {MQTT_USE_TLS})")
 print(f"Auth         : {'Oui' if MQTT_USERNAME else 'Non'}")
 print(f"M5Stack ID   : {M5STACK_ID}")
 print(f"DevEUI       : {DEVEUI}")
 print(f"Topic        : {TOPIC}")
 print(f"Fichier      : {DATA_FILE}")
->>>>>>> fd50dd6ca7322d86326de0db774c1a45a9cffcd7
 print("=" * 50)
 print("Demarrage...")
 
