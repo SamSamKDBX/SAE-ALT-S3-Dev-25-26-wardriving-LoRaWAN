@@ -37,7 +37,7 @@ Repo de la SAE Développement d'application du S3
 
 
 | ODJ du Sprint Retrospectif      | link:Réunion-Sprint-1/ODJ_SEA_LoRaWAN.pdf[ODJ] | link:Réunion-Sprint-Final/ODJ_SAE_LoRaWAN.pdf[ODJ]
-| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| 
+| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| link:Réunion-Sprint-Final/CR_SAE_LoRaWAN.pdf[CR]
 
 
 |===
