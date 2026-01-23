@@ -6,16 +6,13 @@
 #include <TinyGPSPlus.h>
 #include "../config.h"
 
-// #-----------------------------------------------------------------#
-// # Définition des données utiles à la récuparation des données GPS #
-// #-----------------------------------------------------------------#
+static M5Canvas canvas(&M5.Display);
+
 TinyGPSPlus gps;
 unsigned long lastGPSUpdate = 0; // dernière position GPS
 #define GPS_TIMEOUT 10000        // Délai maximum sans signal GPS
-
 #define GPS_RX 16 // Le fil qui REÇOIT les données du GPS
 #define GPS_TX 17 // Le fil qui ENVOIE des données au GPS (pas utilisé ici)
-
 static uint32_t lastGpsLostUiMs = 0;
 
 static void pollGPS()
@@ -38,13 +35,13 @@ static const u1_t PROGMEM APPEUI[8] = {0};
 void os_getArtEui(u1_t *buf) { memcpy_P(buf, APPEUI, 8); }
 
 // This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8] = {M5STACK_ID, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C};
+static const u1_t PROGMEM DEVEUI[8] = LORAWAN_DEVEUI;
 void os_getDevEui(u1_t *buf) { memcpy_P(buf, DEVEUI, 8); }
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
 // practice, a key taken from ttnctl can be copied as-is.
-static const u1_t PROGMEM APPKEY[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, M5STACK_ID};
+static const u1_t PROGMEM APPKEY[16] = LORAWAN_APPKEY;
 void os_getDevKey(u1_t *buf) { memcpy_P(buf, APPKEY, 16); }
 
 char mydata[100];
@@ -232,27 +229,26 @@ void onEvent(ev_t ev)
 
 void setup()
 {
-  // Initialiser la M5 stack
   auto cfg = M5.config();
   M5.begin(cfg);
   M5.Power.begin();
   Serial2.setRxBufferSize(1024);
   Serial2.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
   Serial.begin(115200);
-  while (!Serial)
-  {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-  
-  // Initialiser l'ecran LCD
-  M5.Display.setTextColor(GREEN);
-  M5.Display.setTextSize(2);
-  M5.Display.fillScreen(BLACK);
-  M5.Display.setCursor(0, 0);
-  M5.Display.println("Starting...\nRecherche GPS...");
-  M5.Display.println();
-  M5.Display.setTextColor(WHITE);
-  M5.Display.println("Verifiez:\n- Antenne branchee\n- Etre dehors\n- Attendre 1-2 min");
+  while (!Serial){;} 
+
+  canvas.setColorDepth(8);
+  canvas.createSprite(M5.Display.width(), M5.Display.height());
+  canvas.setTextSize(2);
+
+  canvas.fillSprite(TFT_BLACK);
+  canvas.setCursor(0, 0);
+  canvas.setTextColor(TFT_GREEN);
+  canvas.println("Starting...\nRecherche GPS...");
+  canvas.println();
+  canvas.setTextColor(TFT_WHITE);
+  canvas.println("Verifiez:\n- Antenne branchee\n- Etre dehors\n- Attendre 1-2 min");
+  canvas.pushSprite(0, 0);
 
   // Initialisation LMIC
   os_init();
@@ -265,7 +261,6 @@ void setup()
 
 void loop()
 {
-  // Poll GPS le plus souvent possible
   pollGPS();
 
   // Partie GPS
@@ -273,23 +268,24 @@ void loop()
   {
     lastGPSUpdate = millis();
 
-    M5.Display.fillScreen(BLACK);
-    M5.Display.setCursor(0, 0);
-    M5.Display.setTextColor(YELLOW);
-    M5.Display.println("=== MA POSITION ===");
-    M5.Display.println();
-    M5.Display.setTextColor(GREEN);
-    M5.Display.print("Latitude: ");
-    M5.Display.setTextColor(WHITE);
-    M5.Display.println(gps.location.lat(), 6);
-    M5.Display.setTextColor(GREEN);
-    M5.Display.print("Longitude: ");
-    M5.Display.setTextColor(WHITE);
-    M5.Display.println(gps.location.lng(), 6);
-    M5.Display.setTextColor(GREEN);
-    M5.Display.print("Satellites: ");
-    M5.Display.setTextColor(WHITE);
-    M5.Display.println(gps.satellites.value());
+    canvas.fillSprite(TFT_BLACK);
+    canvas.setCursor(0, 0);
+    canvas.setTextColor(TFT_YELLOW);
+    canvas.println("=== MA POSITION ===");
+    canvas.println();
+    canvas.setTextColor(TFT_GREEN);
+    canvas.print("Latitude: ");
+    canvas.setTextColor(TFT_WHITE);
+    canvas.println(gps.location.lat(), 6);
+    canvas.setTextColor(TFT_GREEN);
+    canvas.print("Longitude: ");
+    canvas.setTextColor(TFT_WHITE);
+    canvas.println(gps.location.lng(), 6);
+    canvas.setTextColor(TFT_GREEN);
+    canvas.print("Satellites: ");
+    canvas.setTextColor(TFT_WHITE);
+    canvas.println(gps.satellites.value());
+    canvas.pushSprite(0, 0);
 
     Serial.print("Position: ");
     Serial.print(gps.location.lat(), 6);
@@ -297,29 +293,30 @@ void loop()
     Serial.println(gps.location.lng(), 6);
   }
 
-  // Détection de perte de signal GPS (sans delay bloquant)
+  // Détection de perte de signal GPS
   if (lastGPSUpdate > 0 && (millis() - lastGPSUpdate) > GPS_TIMEOUT)
   {
     if (millis() - lastGpsLostUiMs >= 1000)
     {
       lastGpsLostUiMs = millis();
 
-      M5.Display.fillScreen(BLACK);
-      M5.Display.setCursor(0, 0);
-      M5.Display.setTextColor(RED);
-      M5.Display.println("SIGNAL PERDU !");
-      M5.Display.println();
-      M5.Display.setTextColor(ORANGE);
-      M5.Display.print("Depuis :");
-      M5.Display.setTextColor(WHITE);
-      M5.Display.print((millis() - lastGPSUpdate) / 1000);
-      M5.Display.println(" sec");
-      M5.Display.println();
-      M5.Display.setTextColor(WHITE);
-      M5.Display.println("Verifiez:");
-      M5.Display.println("- Antenne GPS");
-      M5.Display.println("- Etre dehors");
-      M5.Display.println("- Vue du ciel");
+      canvas.fillSprite(TFT_BLACK);
+      canvas.setCursor(0, 0);
+      canvas.setTextColor(TFT_RED);
+      canvas.println("SIGNAL PERDU !");
+      canvas.println();
+      canvas.setTextColor(TFT_ORANGE);
+      canvas.print("Depuis :");
+      canvas.setTextColor(TFT_WHITE);
+      canvas.print((millis() - lastGPSUpdate) / 1000);
+      canvas.println(" sec");
+      canvas.println();
+      canvas.setTextColor(TFT_WHITE);
+      canvas.println("Verifiez:");
+      canvas.println("- Antenne GPS");
+      canvas.println("- Etre dehors");
+      canvas.println("- Vue du ciel");
+      canvas.pushSprite(0, 0);
     }
   }
 

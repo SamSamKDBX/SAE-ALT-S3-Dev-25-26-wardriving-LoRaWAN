@@ -1,13 +1,22 @@
 services:
-  collector:
-    build:
-      context: ./Code-M5Stack
-      dockerfile: Dockerfile.collector
+  wardriving:
+    build: ./Code-M5Stack
+    ports:
+      - "8080:5000"
+    volumes:
+      - wardriving-data:/data
     environment:
-      BROKER: chirpstack.iut-blagnac.fr
-      PORT: "8883"
-      APP_ID: "6"
-      DEVEUI: "0c7e450102030106"
-      TOPIC: "application/6/device/0c7e450102030106/event/up"
-      OUTPUT_PATH: /data/data.json
+      - DATA_FILE=/data/data.json
+      - MQTT_BROKER=${MQTT_BROKER}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_USE_TLS=${MQTT_USE_TLS}
+      - M5STACK_ID=${M5STACK_ID}
+      - DEVEUI_PREFIX=${DEVEUI_PREFIX}
+      - CHIRPSTACK_APP_ID=${CHIRPSTACK_APP_ID}
+      - MQTT_TOPIC_TEMPLATE=${MQTT_TOPIC_TEMPLATE}
     restart: unless-stopped
+
+volumes:
+  wardriving-data:
