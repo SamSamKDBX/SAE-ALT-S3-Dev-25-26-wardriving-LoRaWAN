@@ -6,7 +6,7 @@
 :icons: font
 :toclevels: 2
 :sectnums:
-:imagesdir: images
+:imagesdir: ../images
 
 
 *S3.A.01 - Développement d'Application - Alternants*
@@ -16,6 +16,9 @@
 *Version 2.0 - 23 Janvier 2026*
 
 *Client : Rémi Boulle*
+
+[width=20%]
+image::logo1.png[logo]
 
 // Table des Matières
 :toc: macro
