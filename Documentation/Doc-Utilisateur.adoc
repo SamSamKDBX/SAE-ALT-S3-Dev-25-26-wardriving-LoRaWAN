@@ -6,7 +6,7 @@
 :icons: font
 :toclevels: 2
 :sectnums:
-:imagesdir: images
+:imagesdir: ../images
 
 
 *S3.A.01 - Développement d'Application - Alternants*
@@ -16,6 +16,9 @@
 *Version 2.0 - 23 Janvier 2026*
 
 *Client : Rémi Boulle*
+
+[width=20%]
+image::logo1.png[logo]
 
 // Table des Matières
 :toc: macro
@@ -51,8 +54,6 @@ Pour effectuer une session de wardriving, vous disposez de :
 
 * **Un M5Stack Core** : boîtier noir avec écran couleur
 * **Un ordinateur** : avec l'application déjà configurée
-
-IMAGE IMAGE IMAGE
 
 [IMPORTANT]
 ====
@@ -117,8 +118,6 @@ En attente de données...
 La carte se centrera sur les premières coordonnées GPS reçues.
 ----
 
-IMAGE IMAGE IMAGE
-
 === Étape 4 : Attendre la connexion
 
 La connexion complète du système peut prendre **jusqu'à 5 minutes**. Voici ce qui se passe :
@@ -149,7 +148,8 @@ Et la carte web se met à jour avec les premières cellules colorées.
 
 === Présentation de l'interface
 
-IMAGE IMAGE IMAGE
+[width=50%]
+image::screenshot-webview-iut.png[Carte]
 
 L'interface web comprend :
 
