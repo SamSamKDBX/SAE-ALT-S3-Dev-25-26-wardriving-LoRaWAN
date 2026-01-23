@@ -3,8 +3,8 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
-#include <TinyGPSPlus.h> // Bibliothèque pour lire les données GPS
-#include "../config.h"    // Configuration du M5Stack
+#include <TinyGPSPlus.h>
+#include "../config.h"
 
 // #-----------------------------------------------------------------#
 // # Définition des données utiles à la récuparation des données GPS #

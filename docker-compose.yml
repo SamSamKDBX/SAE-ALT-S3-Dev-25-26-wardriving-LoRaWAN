@@ -1,0 +1,13 @@
+services:
+  collector:
+    build:
+      context: ./Code-M5Stack
+      dockerfile: Dockerfile.collector
+    environment:
+      BROKER: chirpstack.iut-blagnac.fr
+      PORT: "8883"
+      APP_ID: "6"
+      DEVEUI: "0c7e450102030106"
+      TOPIC: "application/6/device/0c7e450102030106/event/up"
+      OUTPUT_PATH: /data/data.json
+    restart: unless-stopped
