@@ -6,7 +6,7 @@
 :icons: font
 :toclevels: 2
 :sectnums:
-:imagesdir: images
+:imagesdir: ../images
 
 
 *S3.A.01 - Développement d'Application - Alternants*
@@ -14,6 +14,9 @@
 *Groupe 3A* +
 *Lucas Costagliola - Samuel Bour  - Severin Von Allmen* +
 *Version 2.0 - 23 Janvier 2026*
+
+[width=50%]
+image::logo1.png[logo]
 
 *Client : Rémi Boulle*
 
@@ -128,8 +131,6 @@ PlatformIO est nécessaire pour compiler et téléverser le programme sur le M5S
 3. Recherchez "PlatformIO IDE"
 4. Cliquez sur "Install"
 5. Redémarrez VSCode après l'installation
-
-IMAGE IMAGE IMAGE
 
 == Récupération du projet
 
@@ -322,8 +323,6 @@ CHIRPSTACK_APP_ID=votre_app_id
 5. Dans le menu "PROJECT TASKS", cliquez sur **"Upload"**
 6. Attendez la fin de la compilation et du téléversement
 
-IMAGE IMAGE IMAGE
-
 [NOTE]
 ====
 Le premier téléversement peut prendre plusieurs minutes car PlatformIO doit télécharger les dépendances (M5Unified, TinyGPSPlus, LMIC).
@@ -385,7 +384,8 @@ Connecté au broker MQTT
 
 Ouvrez un navigateur et accédez à : http://localhost:8080
 
-IMAGE IMAGE IMAGE
+[width=50%]
+image::screenshot-webview-iut.png[Carte]
 
 [IMPORTANT]
 ====
@@ -556,3 +556,4 @@ docker compose up --build
   "age_ms": 120
 }
 ----
+
