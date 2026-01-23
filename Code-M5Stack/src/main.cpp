@@ -8,6 +8,10 @@
 
 static M5Canvas canvas(&M5.Display);
 
+// #-----#
+// # GPS #
+// #-----#
+
 TinyGPSPlus gps;
 unsigned long lastGPSUpdate = 0; // dernière position GPS
 #define GPS_TIMEOUT 10000        // Délai maximum sans signal GPS
@@ -15,17 +19,27 @@ unsigned long lastGPSUpdate = 0; // dernière position GPS
 #define GPS_TX 17 // Le fil qui ENVOIE des données au GPS (pas utilisé ici)
 static uint32_t lastGpsLostUiMs = 0;
 
+/// @brief Récupère les données GPS si de nouvelles données sont disponibles
 static void pollGPS()
 {
+  // Tant que des données sont disponibles
   while (Serial2.available() > 0)
   {
+    // Lire les données
     gps.encode(Serial2.read());
   }
 }
 
-// #-----------------------------------------------------------------#
-// # Définition des données utiles à la récupération des données SNR #
-// #-----------------------------------------------------------------#
+/// @brief Permet de savoir si les données GPS sont récentes et valides
+/// @return true si les données GPS sont récentes et valides
+static bool gpsIsFresh()
+{
+  return gps.location.isValid() && gps.location.age() < GPS_TIMEOUT;
+}
+
+// #---------#
+// # LORAWAN #
+// #---------#
 
 // This EUI must be in little-endian format, so least-significant-byte
 // first. When copying an EUI from ttnctl output, this means to reverse
@@ -60,6 +74,8 @@ const lmic_pinmap lmic_pins = {
     .dio = {36, 35, LMIC_UNUSED_PIN},
 };
 
+/// @brief Affiche un caractère en hexadécimal
+/// @param v 
 void printHex2(unsigned v)
 {
   v &= 0xff;
@@ -68,11 +84,8 @@ void printHex2(unsigned v)
   Serial.print(v, HEX);
 }
 
-static bool gpsIsFresh()
-{
-  return gps.location.isValid() && gps.location.age() < GPS_TIMEOUT;
-}
-
+/// @brief Permet d'envoyer des données via LoRaWAN
+/// @param j 
 void do_send(osjob_t *j)
 {
   if (LMIC.opmode & OP_TXRXPEND)
@@ -81,12 +94,14 @@ void do_send(osjob_t *j)
     return;
   }
 
+  // Récupérer les données GPS
   M5.update();
   pollGPS();
 
-
+  // Si les données sont récentes
   if (gpsIsFresh())
   {
+    // Ajouter les données à l'objet 'mydata' qui sera envoyé
     // Exemple:
     // {"type":"gps","lat":48.856613,"lon":2.352222,"sat":7,"age":120}
     snprintf(
@@ -100,10 +115,12 @@ void do_send(osjob_t *j)
   }
   else
   {
+    // Sinon ajouter "pas de fix" à 'mydata'
     // Pas de fix / donnée trop vieille
     snprintf(mydata, sizeof(mydata), "{\"type\":\"gps\",\"fix\":false}");
   }
 
+  // Envoyer 'mydata' via LoRaWAN
   LMIC_setTxData2(1, (unsigned char *)mydata, strlen(mydata), 1);
 
   Serial.print("Envoi => ");
@@ -229,18 +246,21 @@ void onEvent(ev_t ev)
 
 void setup()
 {
+  // Configuration de base du M5Stack
   auto cfg = M5.config();
   M5.begin(cfg);
   M5.Power.begin();
+  
+  // Config des moniteurs série
   Serial2.setRxBufferSize(1024);
   Serial2.begin(9600, SERIAL_8N1, GPS_RX, GPS_TX);
   Serial.begin(115200);
   while (!Serial){;} 
 
+  // Config Affichage M5Stack
   canvas.setColorDepth(8);
   canvas.createSprite(M5.Display.width(), M5.Display.height());
   canvas.setTextSize(2);
-
   canvas.fillSprite(TFT_BLACK);
   canvas.setCursor(0, 0);
   canvas.setTextColor(TFT_GREEN);
@@ -261,13 +281,16 @@ void setup()
 
 void loop()
 {
+  // Récupérer les données GPS
   pollGPS();
 
-  // Partie GPS
+  // Si les données sont à jour
   if (gps.location.isUpdated())
   {
+    // Mettre à jour lastUpdate
     lastGPSUpdate = millis();
 
+    // Mettre à jour l'affichage de la M5Stack
     canvas.fillSprite(TFT_BLACK);
     canvas.setCursor(0, 0);
     canvas.setTextColor(TFT_YELLOW);
@@ -287,6 +310,7 @@ void loop()
     canvas.println(gps.satellites.value());
     canvas.pushSprite(0, 0);
 
+    // Mettre à jour l'affichage sur le moniteur
     Serial.print("Position: ");
     Serial.print(gps.location.lat(), 6);
     Serial.print(", ");

@@ -16,6 +16,7 @@ MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "")
 MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", "")
 MQTT_USE_TLS = os.environ.get("MQTT_USE_TLS", "true").lower() == "true"
 
+# Affichage initial dans le terminal
 print("=" * 50)
 print("Configuration Wardriving LoRaWAN")
 print("=" * 50)
@@ -27,15 +28,24 @@ print(f"Fichier      : {DATA_FILE}")
 print("=" * 50)
 print("Demarrage...")
 
-# callbacks
+# callback
 def on_connect(client, userdata, flags, reason_code, properties=None):
+    """
+    Appelé lors de la connection au broker
+    """
     if reason_code == 0:
         print("Connecté au broker MQTT")
-        client.subscribe(TOPIC)  # s'abonner après connexion
+        # S'abonner après connexion
+        client.subscribe(TOPIC)
     else:
         print(f"Échec de connexion (code={reason_code})")
 
+# callback
 def on_message(client, userdata, msg):
+    """
+    Appelé lors de la réception d'un message
+    """
+    # Récupérer le payload au format json
     jsonMsg = json.loads(msg.payload)
 
     # Extraire SNR/RSSI de la meilleure passerelle
@@ -45,7 +55,7 @@ def on_message(client, userdata, msg):
     for passerelle in jsonMsg.get('rxInfo', []):
         snr = passerelle.get('loRaSNR', passerelle.get('snr'))
         rssi = passerelle.get('rssi')
-        print("\n-------------------")
+        print("\n", "-" * 20)
         print("Passerelle :", passerelle.get('name', 'inconnu'))
         print("SNR :", snr)
         print("RSSI :", rssi)
@@ -122,7 +132,7 @@ client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 if MQTT_USE_TLS:
     client.tls_set(tls_version=ssl.PROTOCOL_TLS_CLIENT)
 
-# Authentification si configuree
+# Authentification si configurée
 if MQTT_USERNAME:
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 
