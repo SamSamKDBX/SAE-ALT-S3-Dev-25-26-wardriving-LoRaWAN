@@ -52,5 +52,5 @@ endif::[]
 
 ==== Retours professeurs Sprint 2 :
 
-A venir
+Excellent travail en qualité : 19,33/20
 
