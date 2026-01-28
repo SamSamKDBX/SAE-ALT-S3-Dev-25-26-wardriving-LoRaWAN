@@ -24,7 +24,7 @@ Repo de la SAE Développement d'application du S3
 
 | Backlog Produit  | link:../../issues[Issues GitHub] 
 | Programme wardriving LoRaWAN | link:Code-M5Stack[Code M5Stack] 
-| Cahier de Recettes / Journal de Tests | link:Documentation/Cahier-des-Recettes.adoc[Cahier de recettes] 
+| Cahier de Recettes (ou Journal de Tests) | link:Documentation/Cahier-des-Recettes.adoc[Cahier de recettes] 
 | Document Administrateur (ou Document Technique)  | link:Documentation/Doc-Administrateur.adoc[Administration] 
 | Document Utilisateur | link:Documentation/Doc-Utilisateur.adoc[Utilisation] 
 | Tableau de sprint  | link:https://github.com/users/SamSamKDBX/projects/3/views/1[Tableau] 
@@ -37,7 +37,7 @@ Repo de la SAE Développement d'application du S3
 
 
 | ODJ du Sprint Retrospectif      | link:Réunion-Sprint-1/ODJ_SEA_LoRaWAN.pdf[ODJ] | link:Réunion-Sprint-Final/ODJ_SAE_LoRaWAN.pdf[ODJ]
-| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| 
+| CR du Sprint Retrospectif       |  link:Réunion-Sprint-1/CR_SAE_LoRaWAN.pdf[CR]| link:Réunion-Sprint-Final/CR_SAE_LoRaWAN.pdf[CR]
 
 
 |===
@@ -52,5 +52,5 @@ endif::[]
 
 ==== Retours professeurs Sprint 2 :
 
-A venir
+Excellent travail en qualité : 19,33/20
 

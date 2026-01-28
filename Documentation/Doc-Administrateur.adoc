@@ -1,2 +1,560 @@
-Ici, montrer comment se fait l'installation pour par exemple un admin systeme de l'IUT. Pas l'utilisation, mais le download, installation, commandes a faire, etc... Pour le mettre sur une machine vierge.
+= Documentation Administrateur V2 - Wardriving LoRaWAN
+:doctype: book
+:toc: macro
+:revnumber: 1.0
+:revdate: 2026-01-23
+:icons: font
+:toclevels: 2
+:sectnums:
+:imagesdir: ../images
+
+
+*S3.A.01 - Développement d'Application - Alternants*
+
+*Groupe 3A* +
+*Lucas Costagliola - Samuel Bour  - Severin Von Allmen* +
+*Version 2.0 - 23 Janvier 2026*
+
+*Client : Rémi Boulle*
+
+[width=20%]
+image::logo1.png[logo]
+
+// Table des Matières
+:toc: macro
+:toclevels: 3
+:toc-title: Sommaire
+
+toc::[]
+
+== Introduction
+
+=== Objectif du document
+
+Ce document décrit les procédures d'installation et de configuration du système de wardriving LoRaWAN. Il est destiné aux administrateurs informatiques chargés de déployer l'application sur les postes de travail.
+
+=== Présentation du système
+
+Le système de wardriving LoRaWAN permet de cartographier la couverture du réseau LoRaWAN en collectant des données GPS et de qualité de signal (SNR/RSSI). Il est composé de :
+
+* **Un M5Stack Core** équipé d'un module GPS et LoRaWAN qui collecte et transmet les données
+* **Une application Docker** qui reçoit les données via MQTT et les affiche sur une carte web interactive
+
+=== Architecture technique
+
+[source]
+----
++-------------+     LoRaWAN      +------------------+      MQTT       +------------------+
+|  M5Stack    | --------------> |  Passerelle      | -------------> |  Broker MQTT     |
+|  Core + GPS |     868 MHz     |  LoRaWAN IUT     |                |  ChirpStack      |
++-------------+                 +------------------+                +------------------+
+                                                                            |
+                                                                            v
+                                                                   +------------------+
+                                                                   |  Docker          |
+                                                                   |  - Collecteur    |
+                                                                   |  - Serveur Web   |
+                                                                   +------------------+
+                                                                            |
+                                                                            v
+                                                                   +------------------+
+                                                                   |  Navigateur Web  |
+                                                                   |  localhost:8080  |
+                                                                   +------------------+
+----
+
+== Prérequis matériels
+
+=== Équipement nécessaire
+
+[cols="1,2,2", options="header"]
+|===
+| Composant | Modèle | Description
+
+| Microcontrôleur
+| M5Stack Core
+| Dispositif principal avec écran LCD
+
+| Module GPS
+| NEO-M8N-0-11 (ublox)
+| Module GPS stackable pour M5Stack
+
+| Module LoRaWAN
+| Ra-01H (LoRa 868MHz)
+| Module de communication LoRaWAN pour M5Stack
+
+| Antenne GPS
+| Antenne passive
+| Fournie avec le module GPS
+
+| Antenne LoRaWAN
+| Antenne 868MHz
+| Fournie avec le module LoRa
+|===
+
+=== Assemblage du matériel
+
+Le module GPS NEO-M8N et le module LoRa Ra-01H se stackent directement sur le M5Stack Core. Aucun câblage supplémentaire n'est nécessaire.
+
+[IMPORTANT]
+====
+Vérifiez que les antennes GPS et LoRaWAN sont correctement vissées sur leurs connecteurs respectifs avant toute utilisation.
+====
+
+== Prérequis logiciels
+
+=== Installation de Docker
+
+Docker et Docker Compose sont nécessaires pour exécuter l'application web.
+
+**Sous Linux (Debian/Ubuntu)** :
+[source,bash]
+----
+sudo apt-get update
+sudo apt-get install docker.io docker-compose-plugin
+sudo systemctl enable docker
+sudo systemctl start docker
+----
+
+**Sous Windows/macOS** :
+
+Téléchargez et installez Docker Desktop depuis : https://www.docker.com/products/docker-desktop/
+
+=== Installation de PlatformIO
+
+PlatformIO est nécessaire pour compiler et téléverser le programme sur le M5Stack.
+
+**Installation via Visual Studio Code** :
+
+1. Installez Visual Studio Code depuis : https://code.visualstudio.com/
+2. Ouvrez VSCode et accédez aux extensions (Ctrl+Shift+X)
+3. Recherchez "PlatformIO IDE"
+4. Cliquez sur "Install"
+5. Redémarrez VSCode après l'installation
+
+== Récupération du projet
+
+=== Clonage du dépôt
+
+Récupérez le projet depuis le dépôt GitHub :
+
+[source,bash]
+----
+git clone https://github.com/SamSamKDBX/SAE-ALT-S3-Dev-25-26-wardriving-LoRaWAN.git
+cd SAE-ALT-S3-Dev-25-26-wardriving-LoRaWAN
+----
+
+=== Structure du projet
+
+[source]
+----
+SAE-ALT-S3-Dev-25-26-wardriving-LoRaWAN/
+├── Code-M5Stack/
+│   ├── src/
+│   │   ├── main.cpp          # Programme M5Stack
+│   │   └── main.py           # Collecteur MQTT
+│   ├── web/
+│   │   ├── app.py            # Serveur Flask
+│   │   └── templates/
+│   │       └── index.html    # Interface carte web
+│   ├── config.h              # Configuration M5Stack
+│   ├── platformio.ini        # Configuration PlatformIO
+│   └── Dockerfile
+├── Documentation/
+├── .env                      # Configuration environnement
+└── docker-compose.yml
+----
+
+== Configuration du M5Stack
+
+=== Modification du fichier config.h
+
+Ouvrez le fichier `Code-M5Stack/config.h` et modifiez les valeurs selon votre configuration.
+
+==== Cas 1 : Installation à l'IUT de Blagnac
+
+Si vous êtes à l'IUT de Blagnac, modifiez uniquement l'identifiant du M5Stack :
+
+[source,cpp]
+----
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Modifier cette valeur selon le M5Stack utilisé (ex: 0x06, 0x07, 0x1C, etc.)
+#define M5STACK_ID 0x1C
+
+// Ces valeurs sont pré-configurées pour l'IUT de Blagnac
+#define LORAWAN_DEVEUI {0x06, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C}
+#define LORAWAN_APPKEY {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x01, 0x06}
+
+#endif
+----
+
+[NOTE]
+====
+Le `M5STACK_ID` doit correspondre au dernier octet du DevEUI de votre device sur ChirpStack.
+====
+
+==== Cas 2 : Installation dans un autre établissement
+
+Si vous êtes dans un autre établissement, vous devez configurer les identifiants LoRaWAN selon votre infrastructure :
+
+[source,cpp]
+----
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Identifiant unique de votre M5Stack
+#define M5STACK_ID 0xXX
+
+// DevEUI de votre device (format little-endian, octets inversés)
+// Exemple : si DevEUI = 0C7E450102030106, écrire {0x06, 0x01, 0x03, 0x02, 0x01, 0x45, 0x7E, 0x0C}
+#define LORAWAN_DEVEUI {0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX}
+
+// AppKey de votre application LoRaWAN (format big-endian, ordre normal)
+#define LORAWAN_APPKEY {0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX}
+
+#endif
+----
+
+[IMPORTANT]
+====
+Les valeurs DevEUI et AppKey doivent correspondre à celles configurées sur votre serveur LoRaWAN (ChirpStack, TTN, etc.).
+====
+
+== Configuration de l'environnement Docker
+
+=== Modification du fichier .env
+
+Le fichier `.env` à la racine du projet contient la configuration du collecteur MQTT.
+
+==== Cas 1 : Installation à l'IUT de Blagnac
+
+**Si l'ordinateur est connecté en filaire au réseau de l'IUT** :
+
+[source,bash]
+----
+# Connexion MQTT
+MQTT_BROKER=chirpstack.iut-blagnac.fr
+MQTT_PORT=1883
+MQTT_USERNAME=
+MQTT_PASSWORD=
+MQTT_USE_TLS=false
+
+# Identification du device (doit correspondre au DevEUI complet)
+DEVEUI=0c7e450102030106
+
+# Application ChirpStack
+CHIRPSTACK_APP_ID=6
+----
+
+**Si l'ordinateur est connecté en WiFi ou depuis l'extérieur** :
+
+[source,bash]
+----
+# Connexion MQTT sécurisée
+MQTT_BROKER=chirpstack.iut-blagnac.fr
+MQTT_PORT=8883
+MQTT_USERNAME=
+MQTT_PASSWORD=
+MQTT_USE_TLS=true
+
+# Identification du device
+DEVEUI=0c7e450102030106
+
+# Application ChirpStack
+CHIRPSTACK_APP_ID=6
+----
+
+==== Cas 2 : Installation dans un autre établissement
+
+Adaptez les paramètres selon votre infrastructure MQTT :
+
+[source,bash]
+----
+# Connexion MQTT
+MQTT_BROKER=votre-broker-mqtt.fr
+MQTT_PORT=8883
+MQTT_USERNAME=votre_utilisateur
+MQTT_PASSWORD=votre_mot_de_passe
+MQTT_USE_TLS=true
+
+# Identification du device
+DEVEUI=votre_deveui_complet
+
+# Application (adapter selon votre serveur LoRaWAN)
+CHIRPSTACK_APP_ID=votre_app_id
+----
+
+[cols="1,3", options="header"]
+|===
+| Paramètre | Description
+
+| MQTT_BROKER
+| Adresse du broker MQTT de votre serveur LoRaWAN
+
+| MQTT_PORT
+| Port MQTT (généralement 1883 sans TLS, 8883 avec TLS)
+
+| MQTT_USERNAME
+| Nom d'utilisateur MQTT (laisser vide si pas d'authentification)
+
+| MQTT_PASSWORD
+| Mot de passe MQTT (laisser vide si pas d'authentification)
+
+| MQTT_USE_TLS
+| Activer le chiffrement TLS (true/false)
+
+| DEVEUI
+| DevEUI complet du device en hexadécimal (16 caractères)
+
+| CHIRPSTACK_APP_ID
+| Identifiant de l'application sur le serveur LoRaWAN
+|===
+
+== Téléversement du programme sur le M5Stack
+
+=== Procédure de téléversement
+
+1. Connectez le M5Stack à l'ordinateur via un câble USB-C
+2. Ouvrez le dossier `Code-M5Stack` dans Visual Studio Code
+3. PlatformIO détectera automatiquement le projet
+4. Cliquez sur l'icône PlatformIO dans la barre latérale gauche
+5. Dans le menu "PROJECT TASKS", cliquez sur **"Upload"**
+6. Attendez la fin de la compilation et du téléversement
+
+[NOTE]
+====
+Le premier téléversement peut prendre plusieurs minutes car PlatformIO doit télécharger les dépendances (M5Unified, TinyGPSPlus, LMIC).
+====
+
+=== Vérification du téléversement
+
+Après le téléversement, le M5Stack redémarre automatiquement et affiche :
+
+----
+Starting...
+Recherche GPS...
+
+Verifiez:
+- Antenne branchee
+- Etre dehors
+- Attendre 1-2 min
+----
+
+Pour observer les logs détaillés, ouvrez le moniteur série dans PlatformIO (icône prise électrique ou "Monitor" dans PROJECT TASKS). Le débit est configuré à 115200 bauds.
+
+== Déploiement de l'application Docker
+
+=== Construction et lancement
+
+Depuis la racine du projet, exécutez :
+
+[source,bash]
+----
+docker compose up --build
+----
+
+Cette commande :
+
+1. Construit l'image Docker (première fois uniquement)
+2. Démarre le collecteur MQTT
+3. Démarre le serveur web Flask
+
+=== Vérification du déploiement
+
+**Logs attendus au démarrage** :
+
+[source]
+----
+==================================================
+Configuration Wardriving LoRaWAN
+==================================================
+Broker MQTT  : chirpstack.iut-blagnac.fr:8883 (TLS: True)
+Auth         : Non
+DevEUI       : 0c7e450102030106
+Topic        : application/6/device/0c7e450102030106/event/up
+Fichier      : /data/data.json
+==================================================
+Demarrage...
+Connecté au broker MQTT
+----
+
+**Accès à l'interface web** :
+
+Ouvrez un navigateur et accédez à : http://localhost:8080
+
+[width=50%]
+image::screenshot-webview-iut.png[Carte]
+
+[IMPORTANT]
+====
+La carte affiche un message "En attente de données..." jusqu'à la réception des premières coordonnées GPS. Cela peut prendre jusqu'à 5 minutes selon la qualité du signal GPS et LoRaWAN.
+====
+
+== Vérification du bon fonctionnement
+
+=== Liste de vérification
+
+[cols="1,2,1", options="header"]
+|===
+| Étape | Vérification | Résultat attendu
+
+| 1
+| M5Stack allumé et affiche "MA POSITION"
+| Position GPS affichée
+
+| 2
+| Logs Docker : "Connecté au broker MQTT"
+| Connexion MQTT établie
+
+| 3
+| Logs Docker : "GPS => lat=XX lon=XX"
+| Données GPS reçues
+
+| 4
+| Interface web : carte centrée avec cellules colorées
+| Visualisation fonctionnelle
+|===
+
+=== Résolution des problèmes courants
+
+[cols="1,2,2", options="header"]
+|===
+| Problème | Cause probable | Solution
+
+| M5Stack affiche "SIGNAL PERDU !"
+| Pas de signal GPS
+| Se placer en extérieur avec vue dégagée du ciel
+
+| Docker : "Échec de connexion"
+| Mauvaise configuration MQTT
+| Vérifier MQTT_BROKER, MQTT_PORT et MQTT_USE_TLS dans .env
+
+| Pas de données reçues
+| DevEUI incorrect
+| Vérifier que le DEVEUI dans .env correspond au config.h
+
+| Carte vide après 5 min
+| M5Stack non connecté au réseau LoRaWAN
+| Vérifier les logs série du M5Stack (EV_JOINED doit apparaître)
+|===
+
+== Arrêt et maintenance
+
+=== Arrêt de l'application
+
+Pour arrêter l'application Docker :
+
+* Appuyez sur **Ctrl+C** dans le terminal
+* Ou exécutez : `docker compose down`
+
+=== Relancement pour les utilisateurs
+
+Une fois l'installation effectuée, les utilisateurs peuvent relancer l'application avec :
+
+[source,bash]
+----
+docker compose up
+----
+
+[NOTE]
+====
+La commande `--build` n'est plus nécessaire après la première installation, sauf en cas de modification du code source.
+====
+
+=== Mise à jour du projet
+
+Pour mettre à jour le projet vers une nouvelle version :
+
+[source,bash]
+----
+git pull origin main
+docker compose up --build
+----
+
+== Annexes
+
+=== Annexe A : Pins utilisées sur le M5Stack
+
+[cols="1,2,2", options="header"]
+|===
+| Fonction | Pin | Module
+
+| GPS RX
+| 16
+| NEO-M8N
+
+| GPS TX
+| 17
+| NEO-M8N
+
+| LoRa NSS
+| 5
+| Ra-01H
+
+| LoRa RST
+| 26
+| Ra-01H
+
+| LoRa DIO0
+| 36
+| Ra-01H
+
+| LoRa DIO1
+| 35
+| Ra-01H
+|===
+
+=== Annexe B : Paramètres LoRaWAN
+
+[cols="1,2", options="header"]
+|===
+| Paramètre | Valeur
+
+| Fréquence
+| 868 MHz (EU868)
+
+| Mode d'activation
+| OTAA (Over-The-Air Activation)
+
+| Classe
+| A
+
+| Intervalle de transmission
+| 10 secondes
+
+| Port applicatif
+| 1
+|===
+
+=== Annexe C : Format des données
+
+**Payload envoyée par le M5Stack (JSON)** :
+[source,json]
+----
+{
+  "type": "gps",
+  "lat": 43.648567,
+  "lon": 1.373426,
+  "sat": 8,
+  "age": 120
+}
+----
+
+**Données enregistrées par le collecteur (NDJSON)** :
+[source,json]
+----
+{
+  "timestamp": "2026-01-23T10:30:00Z",
+  "latitude": 43.648567,
+  "longitude": 1.373426,
+  "snr": 8.5,
+  "rssi": -95,
+  "gateway": "GW-IUT-001",
+  "satellites": 8,
+  "age_ms": 120
+}
+----
+
 

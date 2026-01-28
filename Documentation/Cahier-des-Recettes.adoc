@@ -1,12 +1,12 @@
 = Cahier de Recettes V2 - Wardriving LoRaWAN
 :doctype: book
 :toc: macro
-:revnumber: 1.0
-:revdate: 2026-01-13
+:revnumber: 2.0
+:revdate: 2026-01-23
 :icons: font
 :toclevels: 2
 :sectnums:
-:imagesdir: images
+:imagesdir: ../images
 
 
 *S3.A.01 - Développement d'Application - Alternants*
@@ -16,6 +16,9 @@
 *Version 2.0 - 23 Janvier 2026*
 
 *Client : Rémi Boulle*
+
+[width=20%]
+image::logo1.png[logo]
 
 // Table des Matières
 :toc: macro
@@ -34,15 +37,17 @@ toc::[]
 
 **Nécessité du projet** : Dans le cadre du développement de l'infrastructure LoRaWAN de l'IUT, il est nécessaire de pouvoir évaluer et visualiser la qualité de la couverture réseau dans différentes zones du campus. Le wardriving permet d'identifier les zones de bonne et mauvaise couverture pour optimiser le positionnement des passerelles LoRaWAN.
 
-**Objectif du projet** : L'objectif de ce projet est de développer une solution de wardriving LoRaWAN à l'aide d'un M5Stack équipé d'un module GPS et LoRaWAN. Le système doit permettre de collecter et transmettre les données de position GPS et de qualité de signal pour une analyse ultérieure.
+**Objectif du projet** : L'objectif de ce projet est de développer une solution de wardriving LoRaWAN à l'aide d'un M5Stack équipé d'un module GPS et LoRaWAN. Le système doit permettre de collecter et transmettre les données de position GPS et de qualité de signal pour une analyse et visualisation sur une carte web interactive.
 
 === User Stories implémentées
 
-Les User Stories suivantes ont été implémentées dans le Sprint 1 :
+Les User Stories suivantes ont été implémentées :
 
 **US1 - Position GPS** : En tant que client, je souhaite connaître mon emplacement GPS actuel, afin de pouvoir associer la qualité du signal LoRaWAN à une position géographique précise.
 
 **US2 - Qualité du signal** : En tant que client, je souhaite connaître la qualité du signal LoRaWAN à mon emplacement actuel, afin de pouvoir évaluer si la couverture réseau est suffisante à cet endroit.
+
+**US3 - Carte interactive** : En tant que client, je souhaite visualiser sur une carte web interactive la qualité du signal LoRaWAN des emplacements que j'ai parcourus, afin d'analyser la couverture du réseau LoRaWAN sur l'IUT et ses environs.
 
 == Introduction
 
@@ -51,8 +56,8 @@ Ce document a pour but de décrire les tests réalisés sur le système de wardr
 Le cahier de recettes inclut :
 
 - Les tests fonctionnels des User Stories
-- Les tests d'interface (affichage écran LCD)
-- Les tests de communication (GPS et LoRaWAN)
+- Les tests d'interface (affichage écran LCD et interface web)
+- Les tests de communication (GPS, LoRaWAN et MQTT)
 - La description des tests unitaires et d'intégration
 - La couverture et la pertinence des tests
 
@@ -61,10 +66,12 @@ Le cahier de recettes inclut :
 Pour réaliser ces tests, il faut :
 
 - Avoir accès au dépôt GitHub du projet
-- Disposer d'un M5Stack avec module LoRaWAN et GPS
+- Disposer d'un M5Stack Core avec module LoRaWAN (Ra-01H) et GPS (NEO-M8N)
 - Être en extérieur avec vue dégagée du ciel (pour les tests GPS)
 - Avoir accès au réseau LoRaWAN de l'IUT
-- Un ordinateur avec PlatformIO et moniteur série (pour les tests détaillés)
+- Un ordinateur avec Docker et Docker Compose installés
+- Un navigateur web moderne (Chrome, Firefox, Edge)
+- Un ordinateur avec PlatformIO et moniteur série (pour les tests détaillés M5Stack)
 
 == Tests fonctionnels des User Stories
 
@@ -264,227 +271,615 @@ Pour réaliser ces tests, il faut :
 | ✓ OK
 |===
 
-== Tests d'interface (écran LCD)
+=== US3 - Carte web interactive
 
-=== Test 3.1 : Affichage au démarrage
+==== Test 3.1 : Démarrage de l'application web
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T3.1.1
-| Allumer le M5Stack
-| Écran noir avec texte vert "Starting..."
-| M5Stack alimenté
+| Exécuter `docker compose up --build`
+| Le conteneur démarre sans erreur
+| Docker installé, fichier .env configuré
 | ✓ OK
 
 | T3.1.2
-| Vérifier l'affichage des instructions
-| Texte blanc avec vérifications (antenne, extérieur, attente)
-| Démarrage en cours
+| Vérifier les logs Docker
+| Message "Connecté au broker MQTT" affiché
+| Conteneur démarré (T3.1.1)
 | ✓ OK
 
 | T3.1.3
-| Vérifier la taille du texte
-| Texte lisible (setTextSize(2))
-| Écran actif
+| Accéder à http://localhost:8080
+| La page web s'affiche avec message "En attente de données..."
+| Conteneur démarré (T3.1.1)
+| ✓ OK
+
+| T3.1.4
+| Vérifier le fond de carte
+| Carte OpenStreetMap visible, centrée sur la France
+| Page web chargée (T3.1.3)
+| ✓ OK
+
+| T3.1.5
+| Vérifier l'animation d'attente
+| Spinner animé visible pendant l'attente des données
+| Page web chargée (T3.1.3)
 | ✓ OK
 |===
 
-=== Test 3.2 : Affichage de la position GPS
+==== Test 3.2 : Réception et affichage des données
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T3.2.1
-| Acquérir le signal GPS
-| Écran noir avec titre jaune "=== MA POSITION ==="
-| GPS acquis
+| Envoyer des données GPS depuis le M5Stack
+| Les logs Docker affichent "GPS => lat=XX lon=XX"
+| M5Stack en transmission, application web démarrée
 | ✓ OK
 
 | T3.2.2
-| Vérifier les labels
-| Labels "Latitude:", "Longitude:", "Satellites:" en vert
-| GPS acquis
+| Vérifier le centrage automatique de la carte
+| La carte se centre sur la première position GPS reçue
+| Première donnée GPS reçue
 | ✓ OK
 
 | T3.2.3
-| Vérifier les valeurs
-| Valeurs affichées en blanc
-| GPS acquis
+| Vérifier le niveau de zoom initial
+| La carte zoome au niveau 18 (vue détaillée)
+| Carte centrée (T3.2.2)
 | ✓ OK
 
 | T3.2.4
-| Vérifier le rafraîchissement
-| L'écran se réactualise à chaque changement de position
-| GPS acquis et en déplacement
+| Vérifier l'apparition des contrôles
+| La légende et le panneau d'info apparaissent
+| Première donnée GPS reçue
+| ✓ OK
+
+| T3.2.5
+| Vérifier la disparition du message d'attente
+| Le message "En attente de données..." disparaît
+| Première donnée GPS reçue
 | ✓ OK
 |===
 
-=== Test 3.3 : Affichage de perte de signal
+==== Test 3.3 : Affichage des cellules de couverture
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T3.3.1
-| Perdre le signal GPS
-| Écran noir avec texte rouge "SIGNAL PERDU !"
-| Signal GPS perdu > 10s
+| Recevoir une donnée avec SNR > 10 dB
+| Une cellule verte apparaît sur la carte
+| Données GPS avec bon signal
 | ✓ OK
 
 | T3.3.2
-| Vérifier le compteur
-| Texte orange "Depuis :" suivi du temps en blanc
-| Signal GPS perdu
+| Recevoir une donnée avec SNR entre 0 et 10 dB
+| Une cellule jaune apparaît sur la carte
+| Données GPS avec signal correct
 | ✓ OK
 
 | T3.3.3
-| Vérifier la mise à jour du compteur
-| Le compteur se met à jour toutes les secondes
-| Signal GPS perdu
+| Recevoir une donnée avec SNR entre -10 et 0 dB
+| Une cellule orange apparaît sur la carte
+| Données GPS avec signal moyen
 | ✓ OK
 
 | T3.3.4
-| Vérifier les recommandations
-| Liste des vérifications affichée en blanc
-| Signal GPS perdu
+| Recevoir une donnée avec SNR < -10 dB
+| Une cellule rouge apparaît sur la carte
+| Données GPS avec signal faible
+| ✓ OK
+
+| T3.3.5
+| Vérifier la taille des cellules
+| Les cellules font environ 10m × 10m sur la carte
+| Cellules affichées
+| ✓ OK
+
+| T3.3.6
+| Se déplacer avec le M5Stack
+| De nouvelles cellules apparaissent sur le parcours
+| M5Stack mobile avec GPS
 | ✓ OK
 |===
 
-== Tests de communication
+==== Test 3.4 : Mise à jour des cellules existantes
 
-=== Test 4.1 : Communication série GPS
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T3.4.1
+| Rester à la même position et attendre une nouvelle mesure
+| La cellule existante est mise à jour avec le nouveau SNR
+| Cellule déjà affichée
+| ✓ OK
+
+| T3.4.2
+| Vérifier le changement de couleur
+| La couleur de la cellule change si le SNR change de catégorie
+| Cellule mise à jour (T3.4.1)
+| ✓ OK
+|===
+
+==== Test 3.5 : Panneau d'information
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T3.5.1
+| Vérifier le compteur de points collectés
+| Le compteur augmente à chaque nouvelle mesure reçue
+| Données reçues
+| ✓ OK
+
+| T3.5.2
+| Vérifier le compteur de cellules couvertes
+| Le compteur augmente à chaque nouvelle cellule créée
+| Nouvelles cellules créées
+| ✓ OK
+
+| T3.5.3
+| Vérifier l'heure de dernière mise à jour
+| L'heure se met à jour à chaque nouvelle donnée
+| Données reçues
+| ✓ OK
+
+| T3.5.4
+| Vérifier l'affichage du SNR actuel
+| Le SNR de la dernière mesure est affiché avec code couleur
+| Données reçues
+| ✓ OK
+
+| T3.5.5
+| Vérifier l'affichage du RSSI
+| Le RSSI de la dernière mesure est affiché en dBm
+| Données reçues
+| ✓ OK
+|===
+
+==== Test 3.6 : Légende
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T3.6.1
+| Vérifier la présence de la légende
+| La légende s'affiche en bas à droite de la carte
+| Première donnée reçue
+| ✓ OK
+
+| T3.6.2
+| Vérifier les 4 niveaux de couleur
+| Vert (>10dB), Jaune (0-10dB), Orange (-10-0dB), Rouge (<-10dB)
+| Légende affichée
+| ✓ OK
+
+| T3.6.3
+| Vérifier la correspondance couleurs/cellules
+| Les couleurs des cellules correspondent à la légende
+| Cellules et légende affichées
+| ✓ OK
+|===
+
+==== Test 3.7 : Interaction avec la carte
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T3.7.1
+| Utiliser la molette de la souris sur la carte
+| Le niveau de zoom change
+| Carte affichée avec cellules
+| ✓ OK
+
+| T3.7.2
+| Cliquer et faire glisser la carte
+| La carte se déplace dans la direction du glissement
+| Carte affichée
+| ✓ OK
+
+| T3.7.3
+| Cliquer sur une cellule colorée
+| Un popup s'affiche avec les détails (SNR, RSSI, qualité, heure)
+| Cellules affichées
+| ✓ OK
+
+| T3.7.4
+| Vérifier le contenu du popup
+| Affiche la cellule [row, col], SNR en dB, RSSI en dBm, qualité, heure de mise à jour
+| Popup ouvert (T3.7.3)
+| ✓ OK
+|===
+
+==== Test 3.8 : Polling et mise à jour temps réel
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T3.8.1
+| Observer la carte pendant 30 secondes
+| Les nouvelles données apparaissent automatiquement sans rafraîchir la page
+| M5Stack en transmission continue
+| ✓ OK
+
+| T3.8.2
+| Vérifier l'intervalle de polling
+| Les données sont récupérées toutes les 3 secondes
+| Outils développeur ouverts (onglet Network)
+| ✓ OK
+
+| T3.8.3
+| Vérifier l'endpoint /data
+| L'endpoint retourne un tableau JSON des mesures
+| Outils développeur ouverts
+| ✓ OK
+|===
+
+== Tests d'interface (écran LCD)
+
+=== Test 4.1 : Affichage au démarrage
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T4.1.1
-| Vérifier la configuration Serial2
-| 9600 bauds, 8N1, RX=16, TX=17, buffer 1024 octets
-| Code source
+| Allumer le M5Stack
+| Écran noir avec texte vert "Starting..."
+| M5Stack alimenté
 | ✓ OK
 
 | T4.1.2
-| Observer la réception des trames NMEA
-| Le GPS envoie des trames NMEA régulièrement
-| GPS connecté et allumé
+| Vérifier l'affichage des instructions
+| Texte blanc avec vérifications (antenne, extérieur, attente)
+| Démarrage en cours
 | ✓ OK
 
 | T4.1.3
-| Vérifier le parsing GPS
-| TinyGPSPlus décode correctement les trames NMEA
-| GPS en réception
+| Vérifier la taille du texte
+| Texte lisible (setTextSize(2))
+| Écran actif
 | ✓ OK
 |===
 
-=== Test 4.2 : Communication LoRaWAN
+=== Test 4.2 : Affichage de la position GPS
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T4.2.1
-| Vérifier la configuration LMIC
-| Fréquence 868MHz, pins NSS=5, RST=26, DIO0=36, DIO1=35
-| Code source
+| Acquérir le signal GPS
+| Écran noir avec titre jaune "=== MA POSITION ==="
+| GPS acquis
 | ✓ OK
 
 | T4.2.2
-| Tester l'activation OTAA
-| Connexion réussie avec échange de clés
-| Réseau LoRaWAN disponible
+| Vérifier les labels
+| Labels "Latitude:", "Longitude:", "Satellites:" en vert
+| GPS acquis
 | ✓ OK
 
 | T4.2.3
-| Vérifier la transmission uplink
-| Paquets envoyés sur port 1 avec ACK
-| LoRaWAN connecté
+| Vérifier les valeurs
+| Valeurs affichées en blanc
+| GPS acquis
 | ✓ OK
 
 | T4.2.4
-| Tester la gestion du duty cycle
-| Le système respecte les limitations du duty cycle
-| Transmissions multiples
+| Vérifier le rafraîchissement
+| L'écran se réactualise à chaque changement de position
+| GPS acquis et en déplacement
 | ✓ OK
 |===
 
-== Tests de robustesse
+=== Test 4.3 : Affichage de perte de signal
 
-=== Test 5.1 : Gestion des erreurs GPS
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T4.3.1
+| Perdre le signal GPS
+| Écran noir avec texte rouge "SIGNAL PERDU !"
+| Signal GPS perdu > 10s
+| ✓ OK
+
+| T4.3.2
+| Vérifier le compteur
+| Texte orange "Depuis :" suivi du temps en blanc
+| Signal GPS perdu
+| ✓ OK
+
+| T4.3.3
+| Vérifier la mise à jour du compteur
+| Le compteur se met à jour toutes les secondes
+| Signal GPS perdu
+| ✓ OK
+
+| T4.3.4
+| Vérifier les recommandations
+| Liste des vérifications affichée en blanc
+| Signal GPS perdu
+| ✓ OK
+|===
+
+== Tests d'interface web
+
+=== Test 5.1 : Design responsive
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T5.1.1
-| Démarrer sans antenne GPS
-| Le système continue de fonctionner, affiche "fix":false
-| M5Stack sans antenne GPS
+| Ouvrir la page sur un écran large (>1024px)
+| La carte occupe tout l'écran, contrôles bien positionnés
+| Page web chargée
 | ✓ OK
 
 | T5.1.2
-| Déconnecter l'antenne GPS pendant le fonctionnement
-| Détection de la perte après 10s, affichage d'erreur
-| GPS initialement connecté
+| Redimensionner la fenêtre
+| La carte s'adapte à la nouvelle taille
+| Page web chargée
 | ✓ OK
 
 | T5.1.3
-| Reconnecter l'antenne GPS
-| Reprise automatique de l'acquisition GPS
-| Antenne reconnectée
+| Vérifier la lisibilité des contrôles
+| Texte lisible, couleurs distinctes
+| Page web chargée
 | ✓ OK
 |===
 
-=== Test 5.2 : Gestion des erreurs LoRaWAN
+=== Test 5.2 : Compatibilité navigateurs
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
 | T5.2.1
+| Ouvrir la page dans Chrome
+| Affichage correct et fonctionnel
+| Chrome installé
+| ✓ OK
+
+| T5.2.2
+| Ouvrir la page dans Firefox
+| Affichage correct et fonctionnel
+| Firefox installé
+| ✓ OK
+
+| T5.2.3
+| Ouvrir la page dans Edge
+| Affichage correct et fonctionnel
+| Edge installé
+| ✓ OK
+|===
+
+== Tests de communication
+
+=== Test 6.1 : Communication série GPS
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T6.1.1
+| Vérifier la configuration Serial2
+| 9600 bauds, 8N1, RX=16, TX=17, buffer 1024 octets
+| Code source
+| ✓ OK
+
+| T6.1.2
+| Observer la réception des trames NMEA
+| Le GPS envoie des trames NMEA régulièrement
+| GPS connecté et allumé
+| ✓ OK
+
+| T6.1.3
+| Vérifier le parsing GPS
+| TinyGPSPlus décode correctement les trames NMEA
+| GPS en réception
+| ✓ OK
+|===
+
+=== Test 6.2 : Communication LoRaWAN
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T6.2.1
+| Vérifier la configuration LMIC
+| Fréquence 868MHz, pins NSS=5, RST=26, DIO0=36, DIO1=35
+| Code source
+| ✓ OK
+
+| T6.2.2
+| Tester l'activation OTAA
+| Connexion réussie avec échange de clés
+| Réseau LoRaWAN disponible
+| ✓ OK
+
+| T6.2.3
+| Vérifier la transmission uplink
+| Paquets envoyés sur port 1 avec ACK
+| LoRaWAN connecté
+| ✓ OK
+
+| T6.2.4
+| Tester la gestion du duty cycle
+| Le système respecte les limitations du duty cycle
+| Transmissions multiples
+| ✓ OK
+|===
+
+=== Test 6.3 : Communication MQTT
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T6.3.1
+| Vérifier la connexion au broker MQTT
+| Message "Connecté au broker MQTT" dans les logs
+| Application Docker démarrée
+| ✓ OK
+
+| T6.3.2
+| Vérifier l'abonnement au topic
+| Le collecteur s'abonne au topic du device
+| Connexion MQTT établie
+| ✓ OK
+
+| T6.3.3
+| Vérifier la réception des messages
+| Les messages LoRaWAN sont reçus et décodés
+| M5Stack en transmission
+| ✓ OK
+
+| T6.3.4
+| Vérifier l'extraction du SNR/RSSI
+| SNR et RSSI extraits des métadonnées rxInfo
+| Messages reçus
+| ✓ OK
+
+| T6.3.5
+| Tester avec TLS activé (port 8883)
+| Connexion TLS réussie
+| Configuration TLS
+| ✓ OK
+
+| T6.3.6
+| Tester sans TLS (port 1883)
+| Connexion non-TLS réussie
+| Configuration sans TLS
+| ✓ OK
+|===
+
+== Tests de robustesse
+
+=== Test 7.1 : Gestion des erreurs GPS
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T7.1.1
+| Démarrer sans antenne GPS
+| Le système continue de fonctionner, affiche "fix":false
+| M5Stack sans antenne GPS
+| ✓ OK
+
+| T7.1.2
+| Déconnecter l'antenne GPS pendant le fonctionnement
+| Détection de la perte après 10s, affichage d'erreur
+| GPS initialement connecté
+| ✓ OK
+
+| T7.1.3
+| Reconnecter l'antenne GPS
+| Reprise automatique de l'acquisition GPS
+| Antenne reconnectée
+| ✓ OK
+|===
+
+=== Test 7.2 : Gestion des erreurs LoRaWAN
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T7.2.1
 | Démarrer sans réseau LoRaWAN
 | Tentatives de connexion répétées (EV_JOIN_FAILED)
 | Hors de portée du réseau
 | ✓ OK
 
-| T5.2.2
+| T7.2.2
 | Tester en zone de couverture limite
 | Transmissions avec retry en cas d'échec
 | Zone de faible couverture
 | ✓ OK
 
-| T5.2.3
+| T7.2.3
 | Vérifier le comportement en cas de perte de connexion
 | Reconnexion automatique au réseau
 | Perte temporaire de réseau
 | ✓ OK
 |===
 
-=== Test 5.3 : Tests de durabilité
+=== Test 7.3 : Gestion des erreurs application web
 
 [cols="1,2,3,2,1", options="header"]
 |===
 | ID | Action | Comportement attendu | Prérequis | Résultat
 
-| T5.3.1
-| Laisser fonctionner pendant 1 heure
+| T7.3.1
+| Démarrer l'application sans M5Stack
+| L'application démarre et attend les données
+| Docker démarré, pas de M5Stack
+| ✓ OK
+
+| T7.3.2
+| Démarrer l'application avec broker MQTT indisponible
+| Message d'erreur de connexion MQTT dans les logs
+| Mauvaise configuration MQTT
+| ✓ OK
+
+| T7.3.3
+| Fermer le navigateur puis rouvrir
+| Les données précédentes sont toujours affichées
+| Session de wardriving en cours
+| ✓ OK
+
+| T7.3.4
+| Recevoir des données GPS invalides (fix:false)
+| Les données sont ignorées, pas de cellule créée
+| M5Stack sans GPS
+| ✓ OK
+|===
+
+=== Test 7.4 : Tests de durabilité
+
+[cols="1,2,3,2,1", options="header"]
+|===
+| ID | Action | Comportement attendu | Prérequis | Résultat
+
+| T7.4.1
+| Laisser fonctionner le M5Stack pendant 1 heure
 | Le système reste stable, pas de plantage
 | M5Stack en fonctionnement
 | ✓ OK
 
-| T5.3.2
-| Vérifier la consommation de mémoire
+| T7.4.2
+| Vérifier la consommation de mémoire M5Stack
 | Pas de fuite mémoire (heap stable)
 | Moniteur série actif
 | ✓ OK
 
-| T5.3.3
-| Tester avec déplacements répétés
-| Mises à jour GPS continues sans erreur
-| Parcours de wardriving
+| T7.4.3
+| Laisser l'application web ouverte pendant 1 heure
+| Pas de ralentissement, mises à jour continues
+| Application web et M5Stack actifs
+| ✓ OK
+
+| T7.4.4
+| Tester avec plusieurs centaines de cellules
+| Performances maintenues, pas de lag visible
+| Session de wardriving longue
 | ✓ OK
 |===
 
@@ -598,6 +993,104 @@ static void pollGPS()
 | ✓ OK
 |===
 
+==== Test unitaire 4 : Fonction `getColorForSNR()` (JavaScript)
+
+**Objectif** : Vérifier que la fonction retourne la bonne couleur selon le SNR.
+
+**Code testé** :
+[source,javascript]
+----
+function getColorForSNR(snr) {
+    if (snr > 10) return SNR_COLORS.excellent;
+    if (snr >= 0) return SNR_COLORS.good;
+    if (snr >= -10) return SNR_COLORS.medium;
+    return SNR_COLORS.poor;
+}
+----
+
+**Tests réalisés** :
+
+[cols="1,2,2,1", options="header"]
+|===
+| Cas | SNR | Couleur attendue | Résultat
+
+| TU4.1
+| SNR = 15 dB
+| Vert (#22c55e)
+| ✓ OK
+
+| TU4.2
+| SNR = 5 dB
+| Jaune (#eab308)
+| ✓ OK
+
+| TU4.3
+| SNR = -5 dB
+| Orange (#f97316)
+| ✓ OK
+
+| TU4.4
+| SNR = -15 dB
+| Rouge (#ef4444)
+| ✓ OK
+
+| TU4.5
+| SNR = 10 dB (limite)
+| Jaune (#eab308)
+| ✓ OK
+
+| TU4.6
+| SNR = 0 dB (limite)
+| Jaune (#eab308)
+| ✓ OK
+
+| TU4.7
+| SNR = -10 dB (limite)
+| Orange (#f97316)
+| ✓ OK
+|===
+
+==== Test unitaire 5 : Fonction `getCellKey()` (JavaScript)
+
+**Objectif** : Vérifier que la fonction calcule correctement la clé de cellule.
+
+**Code testé** :
+[source,javascript]
+----
+function getCellKey(lat, lon) {
+    const row = Math.floor(lat / CELL_LAT);
+    const col = Math.floor(lon / CELL_LON);
+    return `${row}_${col}`;
+}
+----
+
+**Tests réalisés** :
+
+[cols="1,2,2,1", options="header"]
+|===
+| Cas | Coordonnées | Clé attendue | Résultat
+
+| TU5.1
+| lat=43.648567, lon=1.373426
+| Clé unique sous forme "row_col"
+| ✓ OK
+
+| TU5.2
+| Même position
+| Même clé retournée
+| ✓ OK
+
+| TU5.3
+| Position décalée de 5m
+| Même clé (même cellule)
+| ✓ OK
+
+| TU5.4
+| Position décalée de 15m
+| Clé différente (cellule voisine)
+| ✓ OK
+|===
+
 === Description des tests d'intégration
 
 ==== Test d'intégration 1 : GPS + Affichage LCD
@@ -629,24 +1122,55 @@ static void pollGPS()
 
 **Résultat** : ✓ OK - Les données GPS sont correctement encodées en JSON et transmises via LoRaWAN. Le serveur reçoit les données et ajoute le SNR.
 
-==== Test d'intégration 3 : Boucle complète (GPS + LoRaWAN + LCD)
+==== Test d'intégration 3 : LoRaWAN + MQTT + Collecteur
+
+**Objectif** : Vérifier que les données LoRaWAN sont correctement reçues et traitées par le collecteur.
+
+**Composants testés** : Broker MQTT ChirpStack, Collecteur Python, Stockage NDJSON
+
+**Scénario** :
+1. Données envoyées par le M5Stack
+2. Réception via MQTT par le collecteur
+3. Décodage du payload base64
+4. Extraction des coordonnées GPS et métadonnées
+5. Écriture dans le fichier data.json
+
+**Résultat** : ✓ OK - Les données sont correctement reçues, décodées et stockées avec SNR et RSSI.
+
+==== Test d'intégration 4 : Collecteur + Serveur Flask + Interface Web
+
+**Objectif** : Vérifier que les données stockées sont correctement affichées sur la carte.
+
+**Composants testés** : Fichier data.json, Flask API, JavaScript Leaflet
+
+**Scénario** :
+1. Données stockées dans data.json
+2. Requête de l'interface web vers /data
+3. Parsing du JSON côté client
+4. Création des cellules sur la carte
+5. Mise à jour du panneau d'information
+
+**Résultat** : ✓ OK - Les données sont correctement récupérées et affichées sur la carte avec les bonnes couleurs.
+
+==== Test d'intégration 5 : Boucle complète (M5Stack → Carte Web)
 
 **Objectif** : Vérifier le fonctionnement global du système en conditions réelles.
 
-**Composants testés** : Tous les modules (GPS, LoRaWAN, LCD, LMIC loop)
+**Composants testés** : Tous les modules (GPS, LoRaWAN, MQTT, Collecteur, Flask, Leaflet)
 
 **Scénario** :
-1. Démarrage du système
+1. Démarrage du système complet
 2. Connexion au réseau LoRaWAN (OTAA)
 3. Acquisition du signal GPS
 4. Affichage sur LCD
 5. Transmission périodique des données
-6. Déplacement avec mise à jour continue
-7. Gestion de la perte et récupération du signal
+6. Réception et stockage par le collecteur
+7. Affichage en temps réel sur la carte web
+8. Déplacement avec mise à jour continue
 
-**Résultat** : ✓ OK - Le système fonctionne correctement en conditions réelles pendant des sessions de wardriving de plus d'une heure.
+**Résultat** : ✓ OK - Le système fonctionne correctement de bout en bout pendant des sessions de wardriving de plus d'une heure.
 
-==== Test d'intégration 4 : Polling GPS + LMIC loop
+==== Test d'intégration 6 : Polling GPS + LMIC loop
 
 **Objectif** : Vérifier que le polling GPS et la boucle LMIC ne se bloquent pas mutuellement.
 
@@ -680,6 +1204,18 @@ static void pollGPS()
 | 100%
 | OTAA, uplink, ACK, duty cycle testés
 
+| Réception MQTT
+| 100%
+| Connexion TLS/non-TLS, décodage, stockage testés
+
+| Interface web - Carte
+| 100%
+| Centrage, zoom, cellules, couleurs testés
+
+| Interface web - Contrôles
+| 100%
+| Panneau info, légende, interactions testés
+
 | Gestion des erreurs
 | 100%
 | Perte GPS, perte réseau, erreurs de connexion testées
@@ -687,10 +1223,6 @@ static void pollGPS()
 | Format JSON
 | 100%
 | Cas avec et sans GPS testés
-
-| Polling GPS
-| 100%
-| Lecture série et parsing testés
 |===
 
 **Couverture globale** : ~100% des fonctionnalités implémentées sont testées.
@@ -699,18 +1231,39 @@ static void pollGPS()
 
 Estimation de la couverture du code source :
 
+**M5Stack (main.cpp)** :
+
 - **Fonction `setup()`** : 100% (testée au démarrage)
 - **Fonction `loop()`** : 100% (testée en conditions réelles)
 - **Fonction `do_send()`** : 100% (cas avec et sans GPS testés)
-- **Fonction `onEvent()`** : ~90% (tous les événements principaux testés : JOINING, JOINED, TXCOMPLETE, JOIN_FAILED)
+- **Fonction `onEvent()`** : ~90% (tous les événements principaux testés)
 - **Fonction `pollGPS()`** : 100%
 - **Fonction `gpsIsFresh()`** : 100%
 
-**Couverture estimée du code** : ~95%
+**Collecteur Python (main.py)** :
+
+- **Fonction `on_connect()`** : 100%
+- **Fonction `on_message()`** : 100% (décodage base64, extraction GPS, SNR)
+- **Configuration TLS/non-TLS** : 100%
+
+**Interface web (index.html)** :
+
+- **Fonction `getColorForSNR()`** : 100%
+- **Fonction `getCellKey()`** : 100%
+- **Fonction `updateCell()`** : 100%
+- **Fonction `fetchData()`** : 100%
+- **Fonction `updateInfoPanel()`** : 100%
+
+**Serveur Flask (app.py)** :
+
+- **Route `/`** : 100%
+- **Route `/data`** : 100%
+
+**Couverture estimée du code** : ~97%
 
 **Lignes non couvertes** :
-- Quelques événements LMIC rares (EV_BEACON_FOUND, EV_LINK_DEAD, etc.) qui ne se produisent pas en conditions normales
-- Gestion des downlinks LoRaWAN (LMIC.dataLen) car non utilisés dans cette version
+- Quelques événements LMIC rares (EV_BEACON_FOUND, EV_LINK_DEAD, etc.)
+- Gestion des downlinks LoRaWAN (non utilisés)
 
 === Pertinence des tests
 
@@ -722,7 +1275,8 @@ Les tests ont été conçus selon les critères suivants :
 2. **Tests en conditions réelles** : Tests effectués en extérieur avec déplacements réels
 3. **Tests de robustesse** : Gestion des erreurs et cas limites
 4. **Tests de durabilité** : Fonctionnement prolongé sans dégradation
-5. **Tests d'intégration** : Vérification de l'interopérabilité des modules
+5. **Tests d'intégration** : Vérification de l'interopérabilité de tous les modules
+6. **Tests bout en bout** : Validation de la chaîne complète M5Stack → Carte Web
 
 ==== Analyse de la pertinence
 
@@ -732,7 +1286,7 @@ Les tests ont été conçus selon les critères suivants :
 
 | Couverture des besoins
 | ★★★★★
-| Toutes les fonctionnalités requises sont testées
+| Toutes les fonctionnalités des 3 US sont testées
 
 | Réalisme des scénarios
 | ★★★★★
@@ -744,34 +1298,34 @@ Les tests ont été conçus selon les critères suivants :
 
 | Reproductibilité
 | ★★★★☆
-| La plupart des tests sont reproductibles (dépendance au réseau pour LoRaWAN)
+| La plupart des tests sont reproductibles (dépendance au réseau)
 
 | Documentation
 | ★★★★★
 | Chaque test est documenté avec actions, attendus et résultats
 
 | Automatisation
-| ★☆☆☆☆
-| Tests manuels (automatisation future possible pour certains tests)
+| ★★☆☆☆
+| Tests manuels principalement (automatisation partielle possible)
 |===
 
-**Note globale de pertinence** : ★★★★☆ (4.2/5)
+**Note globale de pertinence** : ★★★★☆ (4.3/5)
 
 ==== Points forts des tests
 
-1. **Tests exhaustifs des User Stories** : Les deux US implémentées sont testées dans tous leurs aspects
-2. **Tests en conditions réelles** : Les tests de wardriving ont été effectués sur le terrain de l'IUT
-3. **Bonne couverture des cas d'erreur** : Perte GPS, perte réseau, antennes déconnectées, etc.
+1. **Tests exhaustifs des 3 User Stories** : Toutes les US sont testées dans tous leurs aspects
+2. **Tests en conditions réelles** : Sessions de wardriving effectuées sur le terrain de l'IUT
+3. **Bonne couverture des cas d'erreur** : Perte GPS, perte réseau, MQTT indisponible, etc.
 4. **Tests de durabilité** : Sessions de test prolongées (>1h) sans problème
 5. **Documentation complète** : Chaque test est clairement décrit avec résultats
+6. **Tests de bout en bout** : Validation de la chaîne complète
 
 ==== Points d'amélioration
 
-1. **Automatisation** : Les tests sont actuellement manuels. Une automatisation partielle pourrait être mise en place (tests unitaires avec framework de test C++)
-2. **Tests de performance** : Mesures de consommation énergétique et d'autonomie non réalisées
-3. **Tests de stress** : Nombre maximum de transmissions ou durée maximale non testés
-4. **Tests de couverture extrême** : Tests aux limites de la portée LoRaWAN non réalisés
-5. **Tests de la partie serveur** : Les tests se concentrent sur le M5Stack, la partie serveur/MQTT/visualisation n'est pas testée ici
+1. **Automatisation** : Les tests sont actuellement manuels. Une automatisation partielle pourrait être mise en place
+2. **Tests de performance** : Mesures de latence et de débit non formalisées
+3. **Tests de charge** : Comportement avec de nombreux utilisateurs simultanés non testé
+4. **Tests de sécurité** : Validation des connexions TLS non approfondie
 
 == Conclusion
 
@@ -779,14 +1333,17 @@ Les tests ont été conçus selon les critères suivants :
 
 Sur l'ensemble des tests réalisés :
 
-- **Tests fonctionnels** : 38/38 ✓ OK (100%)
-- **Tests d'interface** : 12/12 ✓ OK (100%)
-- **Tests de communication** : 7/7 ✓ OK (100%)
-- **Tests de robustesse** : 9/9 ✓ OK (100%)
-- **Tests unitaires** : 10/10 ✓ OK (100%)
-- **Tests d'intégration** : 4/4 ✓ OK (100%)
+- **Tests fonctionnels US1 (GPS)** : 13/13 ✓ OK (100%)
+- **Tests fonctionnels US2 (LoRaWAN)** : 12/12 ✓ OK (100%)
+- **Tests fonctionnels US3 (Carte Web)** : 33/33 ✓ OK (100%)
+- **Tests d'interface LCD** : 11/11 ✓ OK (100%)
+- **Tests d'interface Web** : 6/6 ✓ OK (100%)
+- **Tests de communication** : 13/13 ✓ OK (100%)
+- **Tests de robustesse** : 14/14 ✓ OK (100%)
+- **Tests unitaires** : 18/18 ✓ OK (100%)
+- **Tests d'intégration** : 6/6 ✓ OK (100%)
 
-**Total** : 80/80 tests réussis (100%)
+**Total** : 126/126 tests réussis (100%)
 
 === Validation des User Stories
 
@@ -798,6 +1355,10 @@ Le système permet de connaître la position GPS actuelle avec précision (6 dé
 
 Le système transmet les données GPS via LoRaWAN. Le SNR (Signal-to-Noise Ratio) est ajouté par le serveur LoRaWAN lors de la réception, permettant d'évaluer la qualité du signal à chaque position.
 
+**US3 - Carte web interactive** : ✓ VALIDÉE
+
+Le système affiche une carte web interactive montrant les zones parcourues avec un code couleur indiquant la qualité du signal LoRaWAN. La carte se met à jour en temps réel et permet d'analyser la couverture réseau.
+
 === Conformité au cahier des charges
 
 Le système développé est conforme au cahier des charges :
@@ -808,17 +1369,12 @@ Le système développé est conforme au cahier des charges :
 - ✓ Gestion de la perte de signal GPS
 - ✓ Format JSON pour les données
 - ✓ Réception et enrichissement des données côté serveur (SNR)
+- ✓ Stockage des données de wardriving
+- ✓ Carte web interactive avec Leaflet.js
+- ✓ Code couleur selon la qualité du signal
+- ✓ Mise à jour en temps réel de la carte
 
-=== Recommandations pour la suite
-
-Pour le Sprint 2, les améliorations suivantes sont recommandées :
-
-1. **Application web de visualisation** : Développer l'interface web avec carte interactive (Leaflet.js)
-2. **Base de données** : Stocker les données de wardriving pour analyse historique
-3. **Visualisation du SNR** : Afficher la qualité du signal sur la carte avec code couleur
-4. **Filtrage par passerelle** : Permettre de visualiser la couverture par passerelle LoRaWAN
-5. **Amélioration de l'autonomie** : Optimiser la consommation énergétique pour des sessions plus longues
-6. **Export des données** : Permettre l'export des données pour analyse externe
+IMAGE IMAGE IMAGE
 
 == Annexes
 
@@ -827,8 +1383,8 @@ Pour le Sprint 2, les améliorations suivantes sont recommandées :
 **M5Stack utilisé** : M5Stack Core
 
 **Modules** :
-- Module LoRaWAN 868MHz (pins NSS=5, RST=26, DIO0=36, DIO1=35)
-- Module GPS (Serial2, RX=16, TX=17)
+- Module LoRaWAN Ra-01H 868MHz (pins NSS=5, RST=26, DIO0=36, DIO1=35)
+- Module GPS NEO-M8N-0-11 ublox (Serial2, RX=16, TX=17)
 
 **Antennes** :
 - Antenne GPS passive
@@ -836,21 +1392,24 @@ Pour le Sprint 2, les améliorations suivantes sont recommandées :
 
 === Annexe B : Configuration logicielle
 
-**PlatformIO** : Version utilisée pour le développement
+**M5Stack** :
+- PlatformIO
+- Bibliothèques : M5Unified, TinyGPSPlus, LMIC
 
-**Bibliothèques** :
-- M5Unified : Gestion du M5Stack
-- LMIC : Communication LoRaWAN
-- TinyGPSPlus : Parsing des trames NMEA GPS
+**Application Docker** :
+- Python 3.12
+- Flask 3.0.0
+- paho-mqtt 2.1.0
+- Leaflet.js 1.9.4
 
 **Configuration LoRaWAN** :
 - Mode : OTAA
 - Fréquence : 868MHz (EU868)
 - Classe : A
 
-=== Annexe C : Exemple de payload JSON
+=== Annexe C : Exemple de données
 
-**Avec GPS valide** :
+**Payload envoyée par le M5Stack** :
 [source,json]
 ----
 {
@@ -862,29 +1421,24 @@ Pour le Sprint 2, les améliorations suivantes sont recommandées :
 }
 ----
 
-**Sans GPS** :
+**Données stockées par le collecteur** :
 [source,json]
 ----
 {
-  "type": "gps",
-  "fix": false
+  "timestamp": "2026-01-23T10:30:00Z",
+  "latitude": 43.648567,
+  "longitude": 1.373426,
+  "snr": 8.5,
+  "rssi": -95,
+  "gateway": "GW-IUT-001",
+  "satellites": 8,
+  "age_ms": 120
 }
 ----
 
 === Annexe D : Captures d'écran
 
-**Écran de démarrage** :
-----
-Starting...
-Recherche GPS...
-
-Verifiez:
-- Antenne branchee
-- Etre dehors
-- Attendre 1-2 min
-----
-
-**Écran avec position GPS** :
+**Écran M5Stack - Position GPS** :
 ----
 === MA POSITION ===
 
@@ -893,7 +1447,7 @@ Longitude: 1.373426
 Satellites: 8
 ----
 
-**Écran de perte de signal** :
+**Écran M5Stack - Perte de signal** :
 ----
 SIGNAL PERDU !
 
@@ -904,6 +1458,10 @@ Verifiez:
 - Etre dehors
 - Vue du ciel
 ----
+
+**Interface web - Carte de couverture** :
+
+IMAGE IMAGE IMAGE
 
 === Annexe E : Traces du moniteur série
 
@@ -923,4 +1481,29 @@ Envoi => {"type":"gps","lat":43.648580,"lon":1.373440,"sat":9,"age":95}
 Packet queued
 EV_TXCOMPLETE (includes waiting for RX windows)
 ...
+----
+
+=== Annexe F : Logs du collecteur MQTT
+
+Exemple de logs lors de la réception de données :
+----
+==================================================
+Configuration Wardriving LoRaWAN
+==================================================
+Broker MQTT  : chirpstack.iut-blagnac.fr:8883 (TLS: True)
+Auth         : Non
+DevEUI       : 0c7e450102030106
+Topic        : application/6/device/0c7e450102030106/event/up
+Fichier      : /data/data.json
+==================================================
+Demarrage...
+Connecté au broker MQTT
+
+ --------------------
+Passerelle : GW-IUT-001
+SNR : 8.5
+RSSI : -95
+Payload decodee: {"type":"gps","lat":43.648567,"lon":1.373426,"sat":8,"age":120}
+GPS => lat=43.648567 lon=1.373426 sat=8 age=120ms
+Donnees enregistrees dans /data/data.json
 ----
