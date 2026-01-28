@@ -12,6 +12,8 @@ PORT = int(os.environ.get("MQTT_PORT", "8883"))
 DEVEUI = os.environ.get("LORAWAN_DEVEUI", "0c7e450102030106").lower()
 APP_ID = os.environ.get("APP_ID", "6")
 TOPIC = os.environ.get("MQTT_TOPIC", f"application/{APP_ID}/device/{DEVEUI}/event/up").lower()
+if TOPIC == "":
+    TOPIC = f"application/{APP_ID}/device/{DEVEUI}/event/up"
 MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "")
 MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", "")
 MQTT_USE_TLS = os.environ.get("MQTT_USE_TLS", "true").lower() == "true"
